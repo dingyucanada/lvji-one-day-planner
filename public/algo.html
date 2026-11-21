@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>算法与技术 · 旅迹 LVJI</title>
+<meta name="description" content="旅迹 LVJI 的算法说明：把行程设计形式化为带时间窗的团队定向越野问题（TOPTW），贪心构造 + ILS 双阶段求解，并用全排列穷举做最优性验证。">
+<meta name="theme-color" content="#F5EEE0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233F6455'/%3E%3Cpath d='M7 21c4.5-8 13.5-8 18 0' stroke='%23F5EEE0' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='11.5' r='2.6' fill='%23C4A05A'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=6">
+<style>
+  /* ── 算法页专用 ─────────────────────────────────────────────── */
+  .algo-hero{padding:clamp(30px,5vw,66px) 0 6px;max-width:820px}
+  .algo-hero h1{font-size:clamp(32px,4.4vw,52px);letter-spacing:.02em;line-height:1.28}
+  .algo-hero h1 em{font-style:normal;color:var(--celadon)}
+  .algo-hero .lede{max-width:60ch;margin-top:18px;font-size:14.5px}
+
+  .sec{margin-top:clamp(34px,4.4vw,58px)}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .sec-no{
+    font-family:var(--serif);font-size:12px;letter-spacing:.2em;color:var(--cinnabar);
+    border:1px solid rgba(156,58,44,.3);border-radius:5px;padding:3px 9px;background:var(--cinnabar-soft);
+  }
+  .sec-head h2{font-size:clamp(21px,2.4vw,27px);letter-spacing:.04em}
+  .sec-head .sec-sub{font-size:12px;color:var(--ink-3);letter-spacing:.02em}
+  .sec > p{color:var(--ink-2);font-size:13.5px;line-height:1.85;max-width:74ch}
+  .sec > p + p{margin-top:10px}
+
+  .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+  .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+
+  /* 公式块 */
+  .formula{
+    background:rgba(255,253,248,.6);border:1px solid var(--glass-line-2);border-left:3px solid var(--celadon);
+    border-radius:10px;padding:16px 20px;margin-top:14px;overflow-x:auto;
+  }
+  .formula .fl{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:2.1;white-space:nowrap}
+  .formula .fl b{color:var(--celadon);font-weight:700}
+  .formula .fl i{font-style:normal;color:var(--cinnabar)}
+  .formula .fk{margin-top:8px;font-size:11.5px;color:var(--ink-3);line-height:1.8}
+
+  /* 定义表 */
+  .deftable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:16px}
+  .deftable th{
+    text-align:left;background:rgba(239,229,211,.55);color:var(--ink-2);font-weight:600;
+    font-size:11.5px;padding:9px 12px;border-bottom:1px solid var(--glass-line-2);letter-spacing:.04em;
+  }
+  .deftable td{padding:9px 12px;border-bottom:1px solid rgba(150,128,96,.13);color:var(--ink-2);vertical-align:top}
+  .deftable tr:last-child td{border-bottom:0}
+  .deftable td:first-child{font-family:var(--mono);font-size:11.5px;color:var(--celadon);white-space:nowrap}
+  .deftable td b{color:var(--ink);font-weight:600}
+  .tbl-wrap{border:1px solid var(--glass-line-2);border-radius:11px;overflow:hidden;background:rgba(255,253,248,.42)}
+
+  /* 算子卡 */
+  .op-card{
+    background:var(--glass);border:1px solid var(--glass-line);border-radius:12px;padding:16px 18px;
+    backdrop-filter:blur(10px);box-shadow:var(--shadow-sm);
+  }
+  .op-card .op-t{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-size:14.5px;letter-spacing:.04em;margin-bottom:7px}
+  .op-card .op-t span{
+    font-family:var(--mono);font-size:10.5px;color:var(--celadon);background:var(--celadon-soft);
+    border:1px solid rgba(63,100,85,.2);border-radius:5px;padding:1px 6px;letter-spacing:0;
+  }
+  .op-card p{font-size:12px;color:var(--ink-2);line-height:1.75}
+  .op-card .op-mini{margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.9}
+
+  /* 步骤列表 */
+  .steps{counter-reset:s;margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+  .steps li{
+    counter-increment:s;position:relative;padding-left:38px;font-size:13px;color:var(--ink-2);line-height:1.8;
+  }
+  .steps li::before{
+    content:counter(s,decimal-leading-zero);position:absolute;left:0;top:1px;
+    font-family:var(--serif);font-size:11px;color:var(--celadon);letter-spacing:.04em;
+    border:1px solid rgba(63,100,85,.26);border-radius:5px;width:27px;height:22px;
+    display:flex;align-items:center;justify-content:center;background:var(--celadon-soft);
+  }
+  .steps li b{color:var(--ink);font-weight:600;font-family:var(--serif)}
+
+  /* 结果数字条 */
+  .res-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:12px;margin-top:16px}
+  .res-cell{
+    background:rgba(255,253,248,.55);border:1px solid var(--glass-line-2);border-radius:10px;padding:13px 15px;
+  }
+  .res-cell b{display:block;font-family:var(--serif);font-size:24px;color:var(--celadon);font-variant-numeric:tabular-nums;line-height:1.15}
+  .res-cell.hot b{color:var(--cinnabar)}
+  .res-cell small{display:block;font-size:10.5px;color:var(--ink-3);margin-top:4px;letter-spacing:.04em;line-height:1.5}
+
+  /* 实验叙事 */
+  .exp{
+    border:1px solid var(--glass-line);border-radius:12px;padding:18px 20px;background:var(--glass-2);
+    backdrop-filter:blur(10px);margin-top:16px;
+  }
+  .exp h4{font-family:var(--serif);font-size:14px;letter-spacing:.05em;margin-bottom:9px}
+  .exp .exp-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:12px;align-items:baseline;
+    padding:7px 0;border-bottom:1px dashed var(--glass-line-2);font-size:12px;color:var(--ink-2)}
+  .exp .exp-row:last-child{border-bottom:0}
+  .exp .exp-row code{font-family:var(--mono);font-size:11.5px;color:var(--celadon)}
+  .exp .exp-row b{font-variant-numeric:tabular-nums;font-family:var(--serif);font-size:13.5px}
+  .exp .exp-row .bad{color:var(--bad)}
+  .exp .exp-row .good{color:var(--ok)}
+
+  .callout{
+    border-left:3px solid var(--gold);background:var(--gold-soft);border-radius:0 9px 9px 0;
+    padding:12px 16px;font-size:12.5px;color:#6E5316;line-height:1.8;margin-top:16px;
+  }
+  .callout b{color:#5A4310}
+
+  #scaleChart svg{display:block;width:100%;height:auto}
+  .legend-inline{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);margin-top:9px}
+  .legend-inline i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
+  .algo-foot-cta{
+    margin-top:clamp(34px,4.4vw,58px);display:flex;gap:14px;flex-wrap:wrap;align-items:center;
+    padding-top:24px;border-top:1px solid var(--glass-line-2);
+  }
+  @media (max-width:1000px){
+    .grid2,.grid3{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="./">
+    <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".35"/>
+      <path d="M7 33c5.5-13 28.5-13 34 0" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M15 33c3-7 15-7 18 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>
+      <circle cx="24" cy="13.5" r="3.4" fill="none" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M24 17v7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>
+    </svg>
+    <span class="brand-text">旅迹<small>LVJI · HANGZHOU</small></span>
+  </a>
+  <nav class="topnav">
+    <span class="data-pill" id="dataPill">算法说明</span>
+    <a class="navlink" href="./">行程编排</a>
+    <a class="navlink on" href="algo.html">算法与技术</a>
+    <a class="primary-btn" href="./">回到行程编排</a>
+  </nav>
+</header>
+
+<main>
+  <!-- ── Hero ────────────────────────────────────────────────────── -->
+  <section class="algo-hero">
+    <p class="eyebrow">算法与技术</p>
+    <h1>把行程排成一道<br><em>可以验证</em>的最优化题。</h1>
+    <p class="lede">行程规划不是「把高分景点按顺序念一遍」。它要在一堆互相冲突的约束里做取舍：开放时间只有几个小时、排队会临时变长、老人走不了山路、下午四点要下雨。旅迹把这件事形式化成带时间窗的团队定向越野问题（TOPTW），先贪心拿到可行解，再用迭代局部搜索把顺序改到接近最优，最后用全排列穷举反过来验证启发式有没有排错。</p>
+    <div class="stat-strip" id="kpis">
+      <div class="stat-seal hot"><b id="kGap">—</b><small>对标穷举最优 gap</small></div>
+      <div class="stat-seal"><b id="kHit">—</b><small>真实算例命中最优</small></div>
+      <div class="stat-seal"><b id="kSpeed">—</b><small>n=8 相对穷举加速</small></div>
+      <div class="stat-seal"><b id="kPerm">—</b><small>n=8 全排列规模</small></div>
+    </div>
+  </section>
+
+  <!-- ── 01 建模 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-no">01</span>
+      <h2>问题怎么落到数学模型上</h2>
+      <span class="sec-sub">TTDP → TOPTW</span>
+    </div>
+    <p>旅游行程设计问题（Tourist Trip Design Problem）在学术上是定向越野问题（Orienteering Problem）的变体：候选点各有「价值」，走一趟只能选一部分，要在时间预算内让总价值最大。加上景点开放时间窗与排队之后，它就是 TOPTW（Team Orienteering Problem with Time Windows）——已被证明是 NP-hard，规模一大就不存在多项式时间的精确解法。</p>
+
+    <div class="tbl-wrap">
+      <table class="deftable">
+        <thead><tr><th>符号</th><th>含义</th><th>在系统里的来源</th></tr></thead>
+        <tbody>
+          <tr><td>V, i</td><td>候选景点集合与其中一点</td><td><b>28 个杭州景点</b>，来自本地 spots.json</td></tr>
+          <tr><td>s<sub>i</sub></td><td>第 i 点被选中可得的价值</td><td>九维加权打分（见 §03）</td></tr>
+          <tr><td>d<sub>i</sub></td><td>建议游览时长</td><td>景点数据 durationMin</td></tr>
+          <tr><td>[o<sub>i</sub>, c<sub>i</sub>]</td><td>开放与闭馆时刻</td><td>open / close / closedDays</td></tr>
+          <tr><td>q<sub>i</sub>(t)</td><td>到访时刻 t 的排队时长</td><td>基础排队 × 午高峰 × 周末 × 天气系数</td></tr>
+          <tr><td>τ<sub>ij</sub></td><td>i 到 j 的转场耗时</td><td>haversine 距离 ÷ 步行/地铁/打车速度 + 等待</td></tr>
+          <tr><td>T</td><td>当日可用时间预算</td><td>出发时刻到结束时刻</td></tr>
+          <tr><td>y<sub>i</sub></td><td>决策变量：是否访问 i</td><td>求解输出</td></tr>
+          <tr><td>x<sub>ij</sub></td><td>决策变量：是否从 i 直接去 j</td><td>求解输出（访问顺序）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="formula">
+      <div class="fl"><b>max</b> &nbsp; Σ<sub>i∈V</sub> <i>y</i><sub>i</sub> · s<sub>i</sub> &nbsp;&nbsp;<span style="color:var(--ink-3)">// 总价值最大</span></div>
+      <div class="fl"><b>s.t.</b> &nbsp; Σ<sub>j</sub> x<sub>ij</sub> = y<sub>i</sub> &nbsp;,&nbsp; Σ<sub>j</sub> x<sub>ji</sub> = y<sub>i</sub> &nbsp;&nbsp;<span style="color:var(--ink-3)">// 进了就要出，不许多停</span></div>
+      <div class="fl">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; t<sub>j</sub> ≥ t<sub>i</sub> + q<sub>i</sub>(t<sub>i</sub>) + d<sub>i</sub> + τ<sub>ij</sub> − M(1 − x<sub>ij</sub>) &nbsp;&nbsp;<span style="color:var(--ink-3)">// 时间递推（大 M 松弛）</span></div>
+      <div class="fl">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o<sub>i</sub> ≤ t<sub>i</sub> + q<sub>i</sub>(t<sub>i</sub>) &nbsp;,&nbsp; t<sub>i</sub> + q<sub>i</sub>(t<sub>i</sub>) + d<sub>i</sub> ≤ c<sub>i</sub> &nbsp;&nbsp;<span style="color:var(--ink-3)">// 时间窗两头都卡</span></div>
+      <div class="fl">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; t<sub>i</sub> + q<sub>i</sub>(t<sub>i</sub>) + d<sub>i</sub> ≤ T &nbsp;,&nbsp; y<sub>i</sub> ∈ {0,1} &nbsp;&nbsp;<span style="color:var(--ink-3)">// 当天收工 + 0-1 约束</span></div>
+      <div class="fk">硬约束（闭馆日、轮椅不可达、步行强度超阈值）在建模阶段就直接把变量从 V 里删掉，不进入优化——否则惩罚项会把真正的可行解一起淹掉。</div>
+    </div>
+  </section>
+
+  <!-- ── 02 双阶段 ───────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-no">02</span>
+      <h2>双阶段求解：先把解做出来，再把解做对</h2>
+      <span class="sec-sub">Greedy Construction + ILS</span>
+    </div>
+    <p>单靠贪心只能「一直加」，加到某个点排不进就停手，永远不会回头把前面某个点换掉。所以拆成两层：内层负责在给定访问顺序下把时刻表排出来并算真实目标值，外层负责在<b>顺序的排列空间</b>里搜索。</p>
+
+    <div class="card" style="margin-top:16px">
+      <div id="archChart"></div>
+      <div class="legend-inline">
+        <span><i style="background:#3F6455"></i>内层：解析时刻表，O(n·|V|)</span>
+        <span><i style="background:#9C3A2C"></i>外层：邻域搜索，O(iters·n)</span>
+        <span><i style="background:#A5823C"></i>数据与约束入口</span>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="op-card">
+        <div class="op-t">第一层 · 贪心构造 <span>build_group</span></div>
+        <p>从住宿出发，每一轮在「当前还进得去」的候选里挑分最高的一个，卡死四个时刻：到达、开始游览（等开门之后）、排队结束、离开。任何一步顶到闭馆时间就整站作废。11:30–13:30 强制插午餐，低步行人群每 2.5 小时强制休息。</p>
+        <div class="op-mini">输出：一条可行时间轴 + 真实目标值<br>复杂度：O(n · |V|)，n 为当天停留点数</div>
+      </div>
+      <div class="op-card">
+        <div class="op-t">第二层 · 迭代局部搜索 <span>solve_group</span></div>
+        <p>在「访问顺序」这个排列上做邻域扰动：交换两站、把一站挪到别的位置、把一个没排上的点插进来。每一次扰动都交给第一层按新顺序重排时刻表，只接受目标值严格变好的解；连续 stall ≥ 4 轮没有改进，就把一次扰动加到两次、三次。</p>
+        <div class="op-mini">输出：改进后的顺序 + 收敛轨迹<br>默认 160 轮，实测 15–20 ms</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>这是本次迭代里最关键的一次改动。</b>最初两层的职责被搞反了——外层只是调九维分数的权重，内层贪心照着新权重重排。结果无论怎么调权重，gap 都卡在 12.35% 下不去，因为权重只能改变「哪个点分高」，改不动「先去哪」这种顺序性决策。把搜索空间从「权重向量」换成「访问顺序的排列」之后，真实算例的 gap 从 12.35% 直接降到 0。
+    </div>
+  </section>
+
+  <!-- ── 03 九维 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-no">03</span>
+      <h2>九维评价：定量、半定量、定性各管一段</h2>
+      <span class="sec-sub">4 定量 + 2 半定量 + 3 定性</span>
+    </div>
+    <p>单一评分会把完全不同的信息压成一个数，评审看不出为什么。所以拆成九个维度，每一项标明数据来源的性质：定量项直接来自数据字段，半定量项由规则映射到区间，定性项由标签体系判断。界面上把这张表原样摊开，每个停留点每一维的得分都能逐格看到。</p>
+
+    <div class="tbl-wrap" style="margin-top:16px">
+      <table class="deftable">
+        <thead><tr><th>维度</th><th>类型</th><th>权重</th><th>取值方式</th><th>作用方向</th></tr></thead>
+        <tbody>
+          <tr><td>rating</td><td>定量</td><td>2.0</td><td>点评分 × 2</td><td>口碑越好分越高</td></tr>
+          <tr><td>interest</td><td>定性</td><td>9.0</td><td>命中一个用户兴趣标签 +9</td><td>权重最高，决定主线</td></tr>
+          <tr><td>crowd</td><td>定性</td><td>4.0</td><td>亲子 / 情侣标签匹配 +3~4；周末户外 −1</td><td>人群适配</td></tr>
+          <tr><td>weather</td><td>半定量</td><td>4.0</td><td>降水概率 ≥60% 时室内 +4 / 户外 −4；晴天户外 +2</td><td>天气折价</td></tr>
+          <tr><td>access</td><td>定性</td><td>4.0</td><td>轮椅需求且景点可达 +4</td><td>无障碍准入</td></tr>
+          <tr><td>walk</td><td>半定量</td><td>2.2</td><td>−(步行强度−1) × 2.2（低步行人群）/ × 0.6（常规）</td><td>体力成本</td></tr>
+          <tr><td>queue</td><td>定量</td><td>1/12</td><td>−min(基础排队, 40) / 12</td><td>排队成本</td></tr>
+          <tr><td>travel</td><td>定量</td><td>1/12</td><td>−转场分钟 / 12</td><td>路上成本</td></tr>
+          <tr><td>ticket</td><td>定量</td><td>1/120</td><td>−票价 / 120</td><td>门票成本</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px">权重不是拍脑袋：时间成本（排队、转场）按「1 分钟值多少分」统一到同一量纲，门票按「10 元 ≈ 0.08 分」折算，兴趣与人群这类决定「这趟值不值得来」的因素权重必须显著高于交通噪声，否则排序会被排队时长主导。</p>
+  </section>
+
+  <!-- ── 04 ILS ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-no">04</span>
+      <h2>邻域算子和接受准则</h2>
+      <span class="sec-sub">三种扰动 + 严格改进</span>
+    </div>
+    <div class="grid3">
+      <div class="op-card">
+        <div class="op-t">交换 <span>op &lt; 0.45</span></div>
+        <p>随机取两个已排入的位置互换。用来看「A 和 B 谁该在前」——最便宜也最常用的修正。</p>
+        <div class="op-mini">swap(i, j)</div>
+      </div>
+      <div class="op-card">
+        <div class="op-t">移动 <span>op &lt; 0.85</span></div>
+        <p>把一站从原位置抽出，插到任意其它位置。能修掉「顺序整体偏了」这类交换解决不了的结构问题。</p>
+        <div class="op-mini">insert(j, pop(i))</div>
+      </div>
+      <div class="op-card">
+        <div class="op-t">引入新点 <span>else</span></div>
+        <p>从「本来是落选」的候选池里随机挑一个塞进序列。贪心一旦漏掉某个点，只有这一步能把它捞回来。</p>
+        <div class="op-mini">insert(rand, choice(spare))</div>
+      </div>
+    </div>
+
+    <ul class="steps">
+      <li><b>构造初始解</b>：贪心按九维得分排出第一版时间轴，得到初始目标值 <code>base</code>。</li>
+      <li><b>扰动</b>：按概率抽算子，连续扰动 <code>1 + stall//4</code> 次（上限 4 次）——停滞越久，破坏力度越大。</li>
+      <li><b>重排与评估</b>：把新顺序交给内层按同样的时间窗、排队、午餐规则重排时刻表，算真实目标值。</li>
+      <li><b>严格接受</b>：只有目标值严格大于历史最优才替换 <code>best</code>，不做「以一定概率接受变差解」的退火——目标值口径必须和验证阶段完全一致，否则 gap 就没意义。</li>
+      <li><b>记录轨迹</b>：每一轮的最优值入栈，前端画成阶梯曲线。曲线只升不降，跳升点就是找到更好顺序的时刻。</li>
+    </ul>
+  </section>
+
+  <!-- ── 05 验证 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-no">05</span>
+      <h2>最优性验证：用穷举反过来考自己</h2>
+      <span class="sec-sub">Exhaustive Enumeration as Ground Truth</span>
+    </div>
+    <p>启发式最大的风险是「看起来排得挺顺，其实漏了更好的解」。所以单独写了一个<b>没有任何启发式干预</b>的评估函数 <code>eval_order</code>：给定一个访问顺序，直接按真实规则推时刻表、算真实得分，不剪枝、不折价、不猜。然后用它穷举 n 个景点的全部 n! 种顺序，得到可证明的最优值，再和 ILS 的结果对比。</p>
+
+    <div class="res-strip" id="benchStrip">
+      <div class="res-cell hot"><b id="bGap">—</b><small>平均 gap（相对可证明最优）</small></div>
+      <div class="res-cell"><b id="bHit">—</b><small>命中或超过最优的组数</small></div>
+      <div class="res-cell"><b id="bPerm">—</b><small>每组穷举的排列数</small></div>
+      <div class="res-cell"><b id="bMs">—</b><small>穷举耗时 / ILS 耗时</small></div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:16px">
+      <table class="deftable" id="benchTable">
+        <thead><tr><th>算例</th><th>候选池</th><th>可行排列</th><th>穷举最优</th><th>ILS 结果</th><th>gap</th></tr></thead>
+        <tbody><tr><td colspan="6" style="color:var(--ink-3)">加载中…</td></tr></tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px;font-size:12px;color:var(--ink-3)">gap 出现负值不是错误：ILS 除了调整顺序，还会探索「少去一个点」的子集，而穷举只排了固定集合的全部顺序。所以 gap ≤ 0 意味着启发式的结果不低于穷举最优。</p>
+
+    <div class="card" style="margin-top:18px">
+      <div class="card-head">
+        <h2>规模曲线：排列数爆炸，启发式耗时几乎不变</h2>
+        <span class="card-meta">合成算例 n = 4 → 8</span>
+      </div>
+      <div id="scaleChart"></div>
+      <div class="legend-inline">
+        <span><i style="background:#9C3A2C"></i>全排列穷举耗时</span>
+        <span><i style="background:#3F6455"></i>ILS 耗时</span>
+        <span><i style="background:#B7A98F"></i>排列数 n!</span>
+      </div>
+      <p class="opt-note" id="scaleNote"></p>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:16px">
+      <table class="deftable" id="scaleTable">
+        <thead><tr><th>规模 n</th><th>排列数 n!</th><th>穷举耗时</th><th>ILS 耗时</th><th>gap</th><th>加速比</th></tr></thead>
+        <tbody><tr><td colspan="6" style="color:var(--ink-3)">加载中…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <b>适用边界要说清楚。</b>n ≤ 5 时穷举本来就在 3 ms 内跑完，启发式反而更慢——这个交叉点大约在 n = 6。真实产品里一天能排下的点通常 4–7 个，因此「穷举级精度 + 毫秒级耗时」在当天这个尺度上是成立的；一旦把窗口放宽到多天联合优化，候选池到十几个点，就必须靠启发式，此时 gap 由合成算例曲线给出参考。
+    </div>
+  </section>
+
+  <!-- ── 06 工程 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-no">06</span>
+      <h2>可解释性与工程实现</h2>
+      <span class="sec-sub">黑盒算法没人敢用</span>
+    </div>
+    <p>一个排得再好的行程，如果用户不知道为什么这么排、为什么没排那个，就不会采纳。所以求解过程被完整暴露到界面上：</p>
+    <div class="grid2" style="margin-top:16px">
+      <div class="op-card">
+        <div class="op-t">九维评分矩阵</div>
+        <p>每个停留点 × 九个维度逐格展示得分，正负用色阶区分，最后一列是合计。评审可以直接看到「为什么断桥排第 5」。</p>
+      </div>
+      <div class="op-card">
+        <div class="op-t">落选归因</div>
+        <p>没进行程的点分三类：硬约束出局（闭馆 / 轮椅不可达 / 坡度超标）、前几天已去过、评分未进前列。每类都给出具体原因，不写「综合考量」。</p>
+      </div>
+      <div class="op-card">
+        <div class="op-t">收敛曲线</div>
+        <p>贪心构造值、ILS 最优值、提升幅度、改进轮次、每一轮的轨迹，全部来自真实运行，不是示意。</p>
+      </div>
+      <div class="op-card">
+        <div class="op-t">接口调用记录</div>
+        <p>行程用到的每次数据接口调用（路径、返回行数、耗时）都记在结果里，证明数据是从接口来的，不是预置文案。</p>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:16px">
+      <table class="deftable">
+        <thead><tr><th>接口</th><th>用途</th><th>实现要点</th></tr></thead>
+        <tbody>
+          <tr><td>GET /api/spots</td><td>28 个景点 + 8 家餐厅</td><td>开放时间、闭馆日、排队、步行强度、无障碍四件套</td></tr>
+          <tr><td>GET /api/weather</td><td>逐日天气样例</td><td>多日行程按日期依次取；超出范围按最近一天气候外推并标注</td></tr>
+          <tr><td>GET /api/transport</td><td>城际车次 + 市内三档速度</td><td>步行 4.5 km/h、地铁 22 km/h + 6 min 等待、打车 26 km/h + 5 min</td></tr>
+          <tr><td>GET /api/benchmark</td><td>真实算例穷举对标</td><td>n=7 时 5040 种排列，结果确定，进程内缓存</td></tr>
+          <tr><td>GET /api/scaling</td><td>规模曲线</td><td>合成算例 n=4..8，n=8 时 40320 种排列</td></tr>
+          <tr><td>POST /api/plan</td><td>一句话 → N 天行程</td><td>解析需求 → 逐日求解 → 汇总预算 / 路线 / 无障碍</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── 07 局限 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-no">07</span>
+      <h2>已知局限与下一步</h2>
+      <span class="sec-sub">诚实比漂亮重要</span>
+    </div>
+    <ul class="steps">
+      <li><b>单目标加权，不是帕累托前沿</b>：九维被压成一个标量，权重变化会改变解的取舍。下一步可以做多目标（时间 / 花费 / 兴趣）的帕累托集，让用户自己挑。</li>
+      <li><b>排队模型是经验系数</b>：午高峰 ×1.6、周末 ×1.25、雨天室内 ×1.3 都来自规则而非真实客流。接入真实预约接口后，这一项应该换成数据驱动的。</li>
+      <li><b>天气只有一个样例源</b>：本地 4 天样例，多日行程超出范围的部分按气候外推，界面上明确标注了「外推」。</li>
+      <li><b>多日是逐日求解，不是全局联合优化</b>：把 N 天拆成 N 个耦合子问题，跨天只共享「已去过」集合。真正的联合优化要把 N 天放进同一个时间轴，规模会比现在大一个量级。</li>
+      <li><b>穷举验证只在小规模成立</b>：n 超过 10 之后全排列不可行，需要换用整数规划求解器（如 OR-Tools 的 CP-SAT）作为下界参考。</li>
+    </ul>
+
+    <div class="algo-foot-cta">
+      <a class="primary-btn big" href="./">回到行程编排 →</a>
+      <a class="ghost-btn" href="./?verify=1">打开页面并自动跑一遍验证</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>旅迹 LVJI · 算法与技术说明</span>
+  <span>所有数字来自本机真实运行，非示意</span>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* ── 架构图 ─────────────────────────────────────────────────────── */
+(function drawArch() {
+  const W = 1000, H = 368;
+  const C = { in: '#A5823C', layer: '#3F6455', out: '#9C3A2C' };
+
+  /* box(x,y,w,h,title,sub,color) —— sub 为空时标题垂直居中 */
+  const box = (x, y, w, h, title, sub, color) => `
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="9" fill="#FFFDF8" fill-opacity=".88"
+          stroke="${color}" stroke-opacity=".5" stroke-width="1.4"/>
+    <text x="${x + w / 2}" y="${sub ? y + 28 : y + h / 2 + 4}" text-anchor="middle" font-size="12.5"
+          font-weight="700" fill="#23201C" font-family="serif">${title}</text>
+    ${sub ? `<text x="${x + w / 2}" y="${y + 47}" text-anchor="middle" font-size="10" fill="#867C6C">${sub}</text>` : ''}`;
+
+  const arrow = (x1, y1, x2, y2, color, dash) => `
+    <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="1.5"
+          stroke-dasharray="${dash || '0'}" marker-end="url(#ar-${color.replace('#', '')})"/>`;
+
+  const note = (x, y, t, anchor, size) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="${size || 9.5}" fill="#867C6C">${t}</text>`;
+
+  $('archChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="双阶段求解架构图">
+    <defs>
+      ${Object.values(C).map(c => `
+        <marker id="ar-${c.replace('#', '')}" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+          <path d="M0 0 L6 3 L0 6 Z" fill="${c}" fill-opacity=".85"/>
+        </marker>`).join('')}
+    </defs>
+
+    <!-- 输入 -->
+    ${box(6, 140, 108, 64, '一句话需求', '天数 / 人群 / 偏好', C.in)}
+    ${arrow(114, 172, 132, 172, C.in)}
+
+    <!-- 需求解析 -->
+    <rect x="132" y="132" width="172" height="96" rx="9" fill="#FFFDF8" fill-opacity=".88"
+          stroke="${C.in}" stroke-opacity=".5" stroke-width="1.4"/>
+    <text x="218" y="158" text-anchor="middle" font-size="12" font-weight="700" fill="#23201C" font-family="serif">需求解析 · 硬约束过滤</text>
+    ${note(218, 180, '闭馆日 / 轮椅 / 坡度超标')}
+    ${note(218, 197, '候选池 28 点 → 可进入集')}
+    ${note(218, 214, '剔除的变量不进优化')}
+
+    ${arrow(304, 168, 326, 82, C.in)}
+    ${arrow(304, 190, 326, 252, C.in)}
+
+    <!-- 第一层 -->
+    ${box(326, 26, 252, 112, '第一层 · 贪心构造', 'build_group · O(n·|V|)', C.layer)}
+    ${note(452, 84, '到达 → 排队 → 游览 → 闭馆')}
+    ${note(452, 102, '四个时刻全部卡死')}
+
+    <!-- 第二层 -->
+    ${box(326, 196, 252, 112, '第二层 · ILS 邻域搜索', 'solve_group · 160 轮', C.out)}
+    ${note(452, 254, '交换 / 移动 / 引入新点')}
+    ${note(452, 272, '只接受严格更优的解')}
+
+    <!-- 两层往返 -->
+    ${arrow(502, 138, 502, 196, C.out, '5 4')}
+    ${note(510, 172, '新顺序', 'start')}
+    ${arrow(404, 196, 404, 138, C.layer, '5 4')}
+    ${note(396, 172, '真实目标值', 'end')}
+
+    <!-- 输出 -->
+    ${arrow(578, 82, 650, 82, C.layer)}
+    ${box(650, 26, 250, 112, '可执行时间轴', '排队 / 门票 / 无障碍逐点标注', C.layer)}
+
+    ${arrow(775, 138, 775, 152, C.layer)}
+    ${box(650, 152, 250, 52, '分组 · 多日 · 预算汇总', '', C.layer)}
+
+    ${arrow(578, 252, 650, 252, C.out)}
+    ${box(650, 196, 250, 112, '最优性验证（旁路）', 'eval_order 全排列穷举对标', C.in)}
+    ${note(775, 254, '独立实现，不复用启发式的任何假设')}
+    ${note(775, 272, '用来反证启发式有没有排错')}
+
+    <text x="500" y="342" text-anchor="middle" font-size="10.5" fill="#7C7264" font-family="serif" letter-spacing=".06em">解的质量由内层口径决定，解的优劣由外层搜索决定</text>
+  </svg>`;
+})();
+
+/* ── 数据填充 ───────────────────────────────────────────────────── */
+const num1 = n => (Math.round((Number(n) || 0) * 10) / 10).toFixed(1);
+const pct = n => (Math.max(0, Number(n) || 0)).toFixed(2) + '%';
+
+Promise.all([
+  fetch('api/benchmark').then(r => r.json()).catch(() => null),
+  fetch('api/scaling').then(r => r.json()).catch(() => null),
+]).then(([real, sc]) => {
+  if (real && real.summary) {
+    const s = real.summary;
+    $('kGap').textContent = pct(s.avgGap);
+    $('kHit').textContent = `${s.hit}/${s.trips}`;
+    $('bGap').textContent = pct(s.avgGap);
+    $('bHit').textContent = `${s.hit}/${s.trips}（${s.hitRate}%）`;
+    $('bPerm').textContent = s.perms.toLocaleString('zh-CN');
+    $('bMs').textContent = `${num1(s.avgBruteMs)} / ${num1(s.avgIlsMs)} ms`;
+    const rows = (real.trials || []).map((t, i) => `<tr>
+      <td>算例 ${i + 1}</td>
+      <td style="font-family:var(--sans);font-size:11.5px">${t.pool.map(esc).join('、')}</td>
+      <td>${t.feasiblePerms} / ${t.perms}</td>
+      <td>${num1(t.brute.value)}</td>
+      <td>${num1(t.ils.value)}（${t.ils.spots} 点）</td>
+      <td style="color:${t.gapPct <= 0.001 ? 'var(--ok)' : 'var(--warn)'};font-weight:700">${t.gapPct}%</td>
+    </tr>`).join('');
+    $('benchTable').querySelector('tbody').innerHTML = rows;
+  }
+  if (sc && sc.rows) {
+    const rows = sc.rows;
+    const last = rows[rows.length - 1], first = rows[0];
+    $('kSpeed').textContent = Math.round(last.speedup) + '×';
+    $('kPerm').textContent = last.perms.toLocaleString('zh-CN');
+
+    $('scaleTable').querySelector('tbody').innerHTML = rows.map(r => `<tr>
+      <td>n = ${r.n}</td>
+      <td>${r.perms.toLocaleString('zh-CN')}</td>
+      <td>${r.bruteMs} ms</td>
+      <td>${r.ilsMs} ms</td>
+      <td style="color:${r.gapPct <= 0.5 ? 'var(--ok)' : 'var(--warn)'};font-weight:700">${r.gapPct}%</td>
+      <td>${r.speedup}×</td>
+    </tr>`).join('');
+
+    const permX = Math.round(last.perms / first.perms);
+    const bruteX = Math.round(last.bruteMs / first.bruteMs);
+    const ilsX = (last.ilsMs / first.ilsMs).toFixed(1);
+    $('scaleNote').textContent = `n 从 ${first.n} 增到 ${last.n}，排列数涨 ${permX.toLocaleString('zh-CN')} 倍，穷举耗时涨 ${bruteX.toLocaleString('zh-CN')} 倍；ILS 只从 ${first.ilsMs} ms 涨到 ${last.ilsMs} ms（${ilsX} 倍）。这就是启发式存在的理由——它的成本跟着「点数的多项式」走，不跟阶乘走。`;
+
+    /* 对数坐标折线图 */
+    const W = 620, H = 260, padL = 46, padR = 16, padT = 18, padB = 34;
+    const xs = i => padL + (i / (rows.length - 1)) * (W - padL - padR);
+    const vals = rows.flatMap(r => [r.bruteMs, r.ilsMs]).filter(v => v > 0);
+    const ymin = Math.log10(Math.min(...vals)) - 0.25;
+    const ymax = Math.log10(Math.max(...vals)) + 0.25;
+    const ys = v => padT + (1 - (Math.log10(Math.max(v, 0.05)) - ymin) / (ymax - ymin)) * (H - padT - padB);
+    const line = (key, color, dash) => {
+      const d = rows.map((r, i) => `${i ? 'L' : 'M'}${xs(i).toFixed(1)} ${ys(r[key]).toFixed(1)}`).join(' ');
+      return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2.1" stroke-dasharray="${dash || '0'}" stroke-linejoin="round"/>` +
+        rows.map((r, i) => `<circle cx="${xs(i).toFixed(1)}" cy="${ys(r[key]).toFixed(1)}" r="3.2" fill="#FFFDF7" stroke="${color}" stroke-width="1.8"/>`).join('');
+    };
+    const gridY = [0.1, 1, 10, 100, 1000].filter(v => Math.log10(v) >= ymin && Math.log10(v) <= ymax)
+      .map(v => `<line x1="${padL}" y1="${ys(v).toFixed(1)}" x2="${W - padR}" y2="${ys(v).toFixed(1)}" stroke="#B7A98F" stroke-width=".6" opacity=".5"/>
+        <text x="${padL - 7}" y="${(ys(v) + 3).toFixed(1)}" text-anchor="end" font-size="9" fill="#867C6C">${v} ms</text>`).join('');
+
+    $('scaleChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="规模曲线">
+      ${gridY}
+      <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="#B7A98F" stroke-width=".8" opacity=".6"/>
+      ${line('bruteMs', '#9C3A2C')}
+      ${line('ilsMs', '#3F6455')}
+      ${rows.map((r, i) => `<text x="${xs(i).toFixed(1)}" y="${H - padB + 16}" text-anchor="middle" font-size="9.5" fill="#867C6C">n=${r.n}</text>
+        <text x="${xs(i).toFixed(1)}" y="${H - padB + 28}" text-anchor="middle" font-size="8.5" fill="#A79C8A">${r.perms > 9999 ? Math.round(r.perms / 1000) + 'k' : r.perms} 种</text>`).join('')}
+      <text x="${xs(rows.length - 1).toFixed(1)}" y="${(ys(rows[rows.length - 1].bruteMs) - 10).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#9C3A2C" font-weight="700">${rows[rows.length - 1].bruteMs} ms</text>
+      <text x="${xs(rows.length - 1).toFixed(1)}" y="${(ys(rows[rows.length - 1].ilsMs) + 18).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#3F6455" font-weight="700">${rows[rows.length - 1].ilsMs} ms</text>
+    </svg>`;
+  }
+}).catch(() => {});
+</script>
+</body>
+</html>

@@ -3,42 +3,61 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>旅迹 LVJI · 一日行程编排</title>
-<meta name="description" content="一句话生成一天行程：多站点排序、开放时间与排队、天气交通住宿、分组与无障碍。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230C3B3C'/%3E%3Cpath d='M8 21c4-8 12-8 16 0' stroke='%23FBF8F3' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='12' r='3' stroke='%23FBF8F3' stroke-width='2' fill='none'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="style.css?v=5">
+<title>旅迹 LVJI · 杭州行程编排</title>
+<meta name="description" content="一句话生成杭州一日到五日行程：多站点排序、开放时间与排队、天气交通住宿、分组与无障碍。核心是带时间窗的多目标定向越野（TOPTW）双阶段求解。">
+<meta name="theme-color" content="#F5EEE0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233F6455'/%3E%3Cpath d='M7 21c4.5-8 13.5-8 18 0' stroke='%23F5EEE0' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='11.5' r='2.6' fill='%23C4A05A'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 <header class="topbar">
   <a class="brand" href="./">
     <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M8 34c6-14 26-14 32 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="24" cy="13" r="5" fill="none" stroke="currentColor" stroke-width="3"/>
-      <path d="M24 18v9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".35"/>
+      <path d="M7 33c5.5-13 28.5-13 34 0" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M15 33c3-7 15-7 18 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>
+      <circle cx="24" cy="13.5" r="3.4" fill="none" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M24 17v7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>
     </svg>
-    <span class="brand-text">旅迹<small>LVJI · ONE DAY</small></span>
+    <span class="brand-text">旅迹<small>LVJI · HANGZHOU</small></span>
   </a>
   <nav class="topnav">
-    <span class="data-pill" id="dataPill">本地数据集加载中…</span>
+    <span class="data-pill" id="dataPill">数据集加载中…</span>
+    <a class="navlink on" href="./">行程编排</a>
+    <a class="navlink" href="algo.html">算法与技术</a>
     <button class="ghost-btn" id="howBtn">怎么算的</button>
-    <button class="primary-btn" id="demoBtn">试一个复杂需求</button>
+    <button class="seal-btn" id="demoBtn">试一个复杂需求</button>
   </nav>
 </header>
 
 <main>
-  <!-- Hero：一句话输入 -->
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
   <section class="hero">
     <div class="hero-copy">
-      <p class="eyebrow">挑战 2 · 旅行规划应用</p>
-      <h1>一句话，排好一天。</h1>
-      <p class="lede">说清和谁、想玩什么、有没有不方便的地方。系统会按景点开放时间、排队时长、步行强度、天气与交通，把一天排成可执行的时间轴。</p>
+      <p class="eyebrow">挑战 2 · 旅行规划 Agent</p>
+      <h1>一句话，<br>排好一趟<em>杭州</em>。</h1>
+      <p class="lede">说清和谁、想玩几天、有没有不方便的地方。系统按景点开放时间、排队时长、步行强度、天气与交通，把一天到五天排成可执行的时间轴——不是罗列景点，是解一个带时间窗的多目标排序问题。</p>
+
+      <div class="stat-strip" id="statStrip">
+        <div class="stat-seal"><b>28</b><small>景点样本</small></div>
+        <div class="stat-seal"><b>9</b><small>评价维度</small></div>
+        <div class="stat-seal hot"><b id="stGap">—</b><small>对标穷举最优 gap</small></div>
+        <div class="stat-seal"><b id="stSpeed">—</b><small>n=8 加速比</small></div>
+      </div>
     </div>
 
     <div class="composer">
       <label class="composer-label" for="ask">你的需求</label>
-      <textarea id="ask" rows="2" maxlength="200" placeholder="例如：明天带坐轮椅的奶奶和两个孩子去杭州玩一天，想看西湖和博物馆，晚上想吃点小吃">明天带坐轮椅的奶奶和两个孩子去杭州玩一天，想看西湖和博物馆，晚上想吃点小吃</textarea>
+      <textarea id="ask" rows="2" maxlength="200" placeholder="例如：从北京去杭州三天两夜，带坐轮椅的奶奶和两个孩子，想看西湖、灵隐寺和茶园，晚上想吃点小吃">明天带坐轮椅的奶奶和两个孩子去杭州玩一天，想看西湖和博物馆，晚上想吃点小吃</textarea>
 
       <div class="chip-groups">
+        <div class="chip-group" data-group="days">
+          <span class="chip-title">天数</span>
+          <button class="chip" data-value="1">1 天</button>
+          <button class="chip" data-value="2">2 天</button>
+          <button class="chip" data-value="3">3 天</button>
+          <button class="chip" data-value="5">5 天</button>
+        </div>
         <div class="chip-group" data-group="tags">
           <span class="chip-title">同行</span>
           <button class="chip" data-value="elderly">带长辈</button>
@@ -50,12 +69,13 @@
           <span class="chip-title">偏好</span>
           <button class="chip" data-value="博物馆">博物馆</button>
           <button class="chip" data-value="湖景">湖景</button>
+          <button class="chip" data-value="古寺">古寺</button>
           <button class="chip" data-value="自然">茶园自然</button>
           <button class="chip" data-value="美食">美食</button>
           <button class="chip" data-value="演出">演出夜景</button>
         </div>
         <div class="chip-group" data-group="time">
-          <span class="chip-title">时间</span>
+          <span class="chip-title">节奏</span>
           <button class="chip" data-value="full">一整天</button>
           <button class="chip" data-value="half">半天</button>
           <button class="chip" data-value="night">到晚上</button>
@@ -68,13 +88,13 @@
       </div>
 
       <div class="composer-foot">
-        <button class="primary-btn big" id="planBtn">生成一天行程</button>
+        <button class="primary-btn big" id="planBtn">生成行程</button>
         <span class="hint">数据全部来自本地 mock API，没有外部接口，也没有编造的实时报价。</span>
       </div>
     </div>
   </section>
 
-  <!-- 结果 -->
+  <!-- ── 结果 ──────────────────────────────────────────────────────── -->
   <section class="result" id="result" hidden>
     <div class="result-head">
       <div id="summary"></div>
@@ -86,13 +106,24 @@
 
     <div id="decisions" class="decisions"></div>
 
+    <!-- 多日全程总览 -->
+    <article class="card overview-card" id="overviewCard" hidden>
+      <header class="card-head">
+        <h2>全程总览</h2>
+        <span class="card-meta" id="overviewMeta"></span>
+      </header>
+      <div class="ov-grid" id="overview"></div>
+    </article>
+
+    <div class="day-tabs" id="dayTabs"></div>
+
     <div class="group-tabs" id="groupTabs"></div>
 
     <div class="layout">
       <div class="col-main">
         <article class="card timeline-card">
           <header class="card-head">
-            <h2 id="timelineTitle">一天时间轴</h2>
+            <h2 id="timelineTitle">当天时间轴</h2>
             <span class="card-meta" id="timelineMeta"></span>
           </header>
           <div class="timeline" id="timeline"></div>
@@ -101,13 +132,13 @@
 
       <aside class="col-side">
         <article class="card map-card">
-          <header class="card-head"><h2>路线示意</h2><span class="card-meta" id="mapMeta">按经纬度绘制</span></header>
+          <header class="card-head"><h2>路线示意</h2><span class="card-meta" id="mapMeta">经纬度等比投影</span></header>
           <div class="map-wrap" id="map"></div>
           <div class="map-legend" id="mapLegend"></div>
         </article>
 
         <article class="card budget-card">
-          <header class="card-head"><h2>预算</h2><span class="card-meta" id="budgetMeta"></span></header>
+          <header class="card-head"><h2>全程预算</h2><span class="card-meta" id="budgetMeta"></span></header>
           <div id="budget"></div>
         </article>
 
@@ -143,18 +174,19 @@
           <ol class="algo-list">
             <li><b>硬约束过滤</b>：闭馆日、轮椅不可达、低步行人群的陡坡点，直接出局，不参与打分。</li>
             <li><b>九维加权打分</b>：口碑、兴趣、人群、天气、无障碍、步行、排队、路上、门票，逐项算分后求和。</li>
-            <li><b>贪心插入</b>：每轮取当前可进入点里分最高的，卡死「到达 → 排队 → 游览 → 闭馆」四个时刻。</li>
-            <li><b>窗口回填</b>：排不进的点不硬塞；开门前要干等超过 30 分钟的直接跳过，避免时间空转。</li>
-            <li><b>分组再平衡</b>：长辈组与亲子组各算一遍，撞点的让后来者改道，午餐同店汇合。</li>
+            <li><b>时刻卡死</b>：每一站都算「到达 → 排队 → 游览 → 闭馆」四个时刻，任何一步顶到闭馆就整站作废。</li>
+            <li><b>等待折价</b>：开门前干等超过 30 分钟开始扣分，而不是硬性丢弃——硬剪枝会把最优解一起剪掉。</li>
+            <li><b>ILS 改顺序</b>：贪心只能单向加，改不了「先去哪」；外层在访问顺序的排列空间做邻域搜索。</li>
+            <li><b>跨天不重复</b>：多日行程把前几天去过的点放进排除集，逐日求解释放耦合。</li>
           </ol>
         </div>
       </div>
     </article>
 
-    <!-- 求解过程与最优性验证 -->
+    <!-- 求解过程 -->
     <article class="card opt-card">
       <header class="card-head">
-        <h2>求解过程</h2>
+        <h2>求解过程 · 当天</h2>
         <span class="card-meta" id="optMeta">贪心构造 → ILS 邻域搜索</span>
       </header>
       <div class="opt-grid">
@@ -170,6 +202,21 @@
       <div id="verifyOut" class="verify-out"></div>
     </article>
 
+    <!-- 算法入口 -->
+    <section class="algo-band">
+      <div>
+        <h3>这套排程是怎么被证明「没排错」的</h3>
+        <p id="abText">把行程设计形式化为带时间窗的团队定向越野问题（TOPTW），两层求解：贪心构造拿到可行解，ILS 在排列空间逼近最优。真实景点算例用全排列穷举对标，gap 不超过 0；合成算例规模上去后，穷举耗时按阶乘爆炸，启发式仍是毫秒级。</p>
+        <div class="ab-kpis">
+          <div><b id="abGap">—</b><small>真实算例 GAP</small></div>
+          <div><b id="abHit">—</b><small>命中可证明最优</small></div>
+          <div><b id="abSpeed">—</b><small>n=8 加速比</small></div>
+          <div><b>9</b><small>定量/半定量/定性维度</small></div>
+        </div>
+      </div>
+      <a class="primary-btn big" href="algo.html">看算法与技术 →</a>
+    </section>
+
     <div class="layout second">
       <article class="card api-card">
         <header class="card-head"><h2>数据接口调用记录</h2><span class="card-meta" id="apiMeta"></span></header>
@@ -184,7 +231,7 @@
 </main>
 
 <footer class="foot">
-  <span>旅迹 LVJI · 一日行程编排</span>
+  <span>旅迹 LVJI · 杭州行程编排 · 挑战 2</span>
   <span>数据：本地内置样例（景点 / 天气 / 交通 / 住宿），非实时</span>
 </footer>
 
@@ -192,16 +239,17 @@
   <button class="dialog-close" id="closeHow" aria-label="关闭">×</button>
   <h2>行程是怎么排出来的</h2>
   <ol class="how-list">
-    <li><b>理解需求</b>：从一句话里取城市、人数、同行人群、兴趣、时段，以及「轮椅 / 腿脚不好 / 怕晒」这类约束。</li>
+    <li><b>理解需求</b>：从一句话里取城市、天数、人数、同行人群、兴趣、时段，以及「轮椅 / 腿脚不好 / 怕晒」这类约束。</li>
     <li><b>过滤</b>：闭馆日、轮椅不可达、步行强度超标的景点直接排除。</li>
-    <li><b>打分</b>：评分 + 兴趣命中 + 天气倾向 − 步行强度惩罚 − 排队时间惩罚 − 路上耗时。</li>
-    <li><b>排时</b>：按分数贪心插入，每一站都算「移动 + 排队 + 游览」，并卡死开放时间与闭馆时间；11:30–13:30 强制留出午餐。</li>
-    <li><b>分组</b>：同时有长辈和孩子时拆两组，各排各的，午餐同店汇合；两组撞点了就让亲子组改走别的景点错峰。</li>
-    <li><b>记账</b>：门票 × 人数 + 市内交通 + 餐费 + 住宿，逐项列清。</li>
+    <li><b>打分</b>：口碑 + 兴趣命中 + 人群适配 + 天气倾向 − 步行强度惩罚 − 排队时间惩罚 − 路上耗时 − 门票。</li>
+    <li><b>排时</b>：按分数贪心插入，每一站都算「移动 + 排队 + 游览」，卡死开放与闭馆时间；11:30–13:30 强制留出午餐。</li>
+    <li><b>改顺序</b>：贪心只能单向加，改不了「先去哪」。外层 ILS 在访问顺序的排列空间做交换 / 移动 / 引入新点，只接受更优解。</li>
+    <li><b>多日</b>：把「N 天」拆成 N 个互相耦合的子问题，逐日求解，前几天去过的点进排除集，住宿固定一家不换店。</li>
+    <li><b>分组</b>：同时有长辈和孩子时拆两组，各排各的，午餐同店汇合；撞点了让亲子组改走别的景点错峰。</li>
   </ol>
   <button class="primary-btn" id="okHow">知道了</button>
 </dialog>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

@@ -90,6 +90,35 @@ GROUPS = [
 CN_NUM = {'一': 1, '二': 2, '两': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10}
 
 
+WEEK_IDX = {'一': 0, '二': 1, '三': 2, '四': 3, '五': 4, '六': 5, '日': 6, '天': 6}
+
+
+def weather_advice(w):
+    """把天气字段翻成「要不要带伞、要不要加外套」这类能直接执行的准备动作。"""
+    out = []
+    if w['rainProb'] >= 60:
+        out.append('降水概率 %d%%，带伞，户外点尽量排在雨小的时段；室内馆优先级上调。' % w['rainProb'])
+    elif w['rainProb'] >= 30:
+        out.append('降水概率 %d%%，包里放把折叠伞，户外点保留但要留室内备选。' % w['rainProb'])
+    else:
+        out.append('降水概率 %d%%，不用带伞。' % w['rainProb'])
+    if w['high'] >= 28:
+        out.append('最高 %d℃，防晒、遮阳帽、补水，中午别在太阳底下走。' % w['high'])
+    if w['low'] <= 10:
+        out.append('最低 %d℃，早晚温差大，给老人和孩子各带一件外套。' % w['low'])
+    if w['outdoorScore'] >= 4:
+        out.append('户外舒适度 %d/5，适合走西湖一线。' % w['outdoorScore'])
+    elif w['outdoorScore'] <= 2:
+        out.append('户外舒适度只有 %d/5，把户外的时间压短。' % w['outdoorScore'])
+    return out
+
+
+def _num(v):
+    """「6」「六」都转成 int。"""
+    v = str(v)
+    return int(v) if v.isdigit() else CN_NUM.get(v, 1)
+
+
 def parse_request(text, form):
     t = (text or '') + ' ' + ' '.join(str(v) for v in (form or {}).values())
     p = {'raw': text}
@@ -99,54 +128,79 @@ def parse_request(text, form):
             p['city'] = city
             break
 
-    # 人数：先看明确数字，没有就按「带谁出门」推算
+    # ── 人数：先认「一家 6 口 / 6 个人 / 6 位」，没有再按同行人推算 ──────────
     p['people'] = None
-    m = re.search(r'(\d+)\s*(?:个)?\s*人', t)
+    m = (re.search(r'一家\s*([一两二三四五六七八九十\d]+)\s*口', t)
+         or re.search(r'(?:共|一共|总共)\s*([一两二三四五六七八九十\d]+)\s*(?:个)?\s*人', t)
+         or re.search(r'([一两二三四五六七八九十\d]+)\s*个?\s*人', t)
+         or re.search(r'([一两二三四五六七八九十\d]+)\s*位(?!置)', t))
     if m:
-        p['people'] = max(1, min(12, int(m[1])))
+        p['people'] = max(1, min(12, _num(m[1])))
     else:
-        m = re.search(r'([一两二三四五六七八九十])\s*个?\s*人', t)
-        if m:
-            p['people'] = CN_NUM.get(m[1], 1)
-    if p['people'] is None:
-        n = 1                                       # 自己
+        n = 1
+        if re.search(r'两口子|夫妻俩|我和(?:老公|老婆|爱人|对象)', t):
+            n = 2                                                   # 「我们两口子」本身就是 2 人
         if re.search(r'爸妈|父母|双亲|老爸老妈', t):
             n += 2
-        n += len(re.findall(r'爷爷|奶奶|外公|外婆|姥姥|姥爷', t))
-        m = re.search(r'([一两二三四五六七八九十\d]+)\s*个?\s*(?:孩子|娃|小朋友|儿童)', t)
+        m = re.search(r'([一两二三四五六七八九十\d]+)\s*位\s*(?:老人|长辈)', t)
         if m:
-            v = m[1]
-            n += int(v) if v.isdigit() else CN_NUM.get(v, 1)
-        elif re.search(r'孩子|娃|小朋友|儿童|儿子|女儿', t):
-            n += 1
-        if re.search(r'情侣|老婆|老公|对象|女朋友|男朋友', t):
+            n += _num(m[1])
+        elif re.search(r'老人|长辈', t):
+            n += 2
+        n += len(re.findall(r'爷爷|奶奶|外公|外婆|姥姥|姥爷', t))
+        m = re.search(r'([一两二三四五六七八九十\d]+)\s*个?\s*(?:孩子|娃|小朋友|儿童|宝宝|婴儿|幼儿)', t)
+        if m:
+            n += _num(m[1])
+        else:
+            n += len(re.findall(r'孩子|小朋友|儿童|儿子|女儿|宝宝|婴儿|幼儿', t))
+        if re.search(r'情侣|女朋友|男朋友', t):
             n += 1
         m = re.search(r'([一两二三四五六七八九十\d]+)\s*个?\s*(?:朋友|同事|同学|闺蜜)', t)
         if m:
-            v = m[1]
-            n += int(v) if v.isdigit() else CN_NUM.get(v, 1)
+            n += _num(m[1])
         elif re.search(r'(?<![女男])朋友|同事|同学|闺蜜', t):
             n += 2
         p['people'] = min(12, n)
     if form and str(form.get('people', '')).isdigit():
         p['people'] = max(1, min(12, int(form['people'])))
 
-    # 人群标签
+    # ── 婴幼儿：人数之外单独记一份，用来排午睡 ─────────────────────────────
+    p['infants'] = 0
+    m = re.search(r'([一两二三四五六七八九十\d]+)\s*个?\s*(?:婴儿|宝宝|奶娃|幼儿)', t)
+    if m:
+        p['infants'] = _num(m[1])
+    elif re.search(r'婴儿|宝宝|奶娃|幼儿', t):
+        p['infants'] = 1
+    if not p['infants']:
+        for m in re.finditer(r'(\d+)\s*岁', t):
+            if int(m[1]) <= 3:
+                p['infants'] = 1
+                break
+    p['nap'] = p['infants'] > 0 or bool(re.search(r'午睡|午休|睡午觉', t))
+
+    # ── 人群标签 ────────────────────────────────────────────────────────
     flags = set()
     for key, words in GROUPS:
         if any(w in t for w in words):
             flags.add(key)
+    if p['infants']:
+        flags.add('infant')
     if form and form.get('tags'):
         flags |= set(form['tags'].split(','))
     p['flags'] = sorted(flags)
 
-    # 无障碍 / 低步行
-    p['wheelchair'] = bool(re.search(r'轮椅|无障碍|坐轮椅', t))
-    p['lowWalk'] = bool(re.search(r'腿脚|走不动|膝盖|少走路|别太累', t)) or 'elderly' in flags
+    # ── 行动能力：轮椅 ≠ 需要无障碍厕所，前者是代步工具，后者是设施 ────────
+    p['wheelchair'] = bool(re.search(r'轮椅|坐轮椅|推轮椅', t))
+    p['needToilet'] = bool(re.search(r'无障碍厕所|无障碍卫生间|无障碍卫浴|无障碍洗手间', t))
+    p['needAed'] = bool(re.search(r'AED|aed|除颤', t))
+    p['needParking'] = bool(re.search(r'停车|车位|自驾|开车去', t))
+    p['lowWalk'] = bool(re.search(r'腿脚|走不动|膝盖|少走路|别太累|不能爬|爬不动|台阶|坡道', t)) or 'elderly' in flags
     if form and form.get('wheelchair') in ('1', 1, True, 'true'):
-        p['wheelchair'] = p['lowWalk'] = True
+        p['wheelchair'] = p['lowWalk'] = p['needToilet'] = True
+    if form and form.get('toilet') in ('1', 1, True, 'true'):
+        p['needToilet'] = True
 
-    # 兴趣
+    # ── 兴趣与「热门」倾向 ───────────────────────────────────────────────
     hits = []
     for tag, words in INTERESTS:
         if any(w in t for w in words):
@@ -154,11 +208,12 @@ def parse_request(text, form):
     if form and form.get('interests'):
         hits += [x for x in form['interests'].split(',') if x]
     p['interests'] = list(dict.fromkeys(hits))
+    p['popular'] = bool(re.search(r'热门|必去|经典|有名|知名|网红', t))
 
     # 雨天倾向
     p['preferIndoor'] = bool(re.search(r'下雨|雨天|别晒|怕晒|太热|防晒|阴天', t))
 
-    # 时段
+    # ── 每日时间窗 ──────────────────────────────────────────────────────
     p['start'] = '09:00'
     p['end'] = '18:30'
     m = re.search(r'(\d{1,2})\s*[:：点]\s*(\d{0,2})\s*(?:开始|出发|到)', t)
@@ -166,16 +221,64 @@ def parse_request(text, form):
         p['start'] = '%02d:%02d' % (int(m[1]), int(m[2] or 0))
     if re.search(r'半天|上午|半天时间', t) and '下午' not in t:
         p['end'] = '13:30'
-    if re.search(r'下午', t):
+    # 只有「下午出发」才是把起点推到下午；光出现「下午」两个字不算（比如「下午 4 点半关门」）
+    if re.search(r'下午(?:才)?(?:出发|动身|开始)|午饭后出发|吃完午饭(?:再)?出发', t):
         p['start'] = '13:30'
-    if re.search(r'晚上|夜景|夜游', t):
+    if re.search(r'夜景|夜游|晚上(?:去|逛|看|吃)|看夜景|灯光秀', t):
         p['end'] = '21:00'
+
+    # 到达日：下午才落地，上午不能排。只记标记，不改全局 start——
+    # 改全局 start 会把「第二天」也变成下午才开始。
+    p['arriveAfternoon'] = bool(re.search(r'下午(?:才)?到|下午抵达|中午到|下午的?(?:飞机|高铁|航班|车)', t))
+
+    # 返程航班：留 2 小时值机 + 1 小时进城路程，市区行程提前 3 小时收尾
+    p['flightOut'] = None
+    m = re.search(r'(\d{1,2})\s*[点:：]\s*(\d{0,2})?\s*(半)?\s*(?:的)?\s*(?:飞机|航班|机票)', t)
+    if m:
+        hh, mm = int(m[1]), (30 if m[3] else int(m[2] or 0))
+        head = t[max(0, m.start() - 10):m.start()]
+        if re.search(r'晚上|傍晚|下午|夜', head) and hh < 12:
+            hh += 12
+        p['flightOut'] = '%02d:%02d' % (min(23, hh), mm)
+
     if form:
         p['start'] = form.get('start') or p['start']
         p['end'] = form.get('end') or p['end']
 
-    # 日期：对齐天气样例
+    # ── 节奏与数量目标 ──────────────────────────────────────────────────
+    p['relaxed'] = bool(re.search(r'不要太赶|不赶|轻松|悠闲|慢慢|节奏慢|别太累', t))
+    p['spotTarget'] = None
+    m = re.search(r'(\d+)\s*[-~到至]\s*(\d+)\s*个', t)
+    if m:
+        p['spotTarget'] = int(m[2])
+    else:
+        m = re.search(r'(\d+)\s*个\s*(?:热门|景点|地方|去处)', t)
+        if m:
+            p['spotTarget'] = int(m[1])
+
+    # ── 酒店预算上限 ────────────────────────────────────────────────────
+    p['hotelMax'] = None
+    m = re.search(r'(\d{2,5})\s*(?:元|块)?\s*(?:以内|以下|之内)', t)
+    if m:
+        p['hotelMax'] = int(m[1])
+
+    # ── 天数：先看「N 天 / N 日」，再看「周三到、周四回」这种跨度 ──────────
+    p['days'] = 1
+    spans = []
+    for m in re.finditer(r'([一两二三四五六七八九十\d]+)\s*(?:天|日)(?![子本])', t):
+        v = m[1]
+        spans.append(_num(v) if v in CN_NUM or v.isdigit() else None)
+    spans = [x for x in spans if x]
+    if spans:
+        p['days'] = max(1, min(7, max(spans)))
+
+    wk = [WEEK_IDX[x] for x in re.findall(r'周([一二三四五六日天])', t)]
+    if len(wk) >= 2 and wk[-1] >= wk[0]:
+        p['days'] = max(p['days'], min(7, wk[-1] - wk[0] + 1))
+
+    # ── 日期：支持「下周 + 周三」 ────────────────────────────────────────
     w = get_weather()['days']
+    today = datetime.date.today()
     p['date'] = w[0]['date']
     if '明天' in t:
         p['date'] = w[1]['date']
@@ -184,8 +287,42 @@ def parse_request(text, form):
     m = re.search(r'(20\d{2}-\d{2}-\d{2})', t)
     if m:
         p['date'] = m[1]
+    else:
+        md = re.search(r'周([一二三四五六日天])', t)
+        if md:
+            target = WEEK_IDX[md[1]]
+            if re.search(r'下周|下个?星期|下礼拜', t):
+                base = today + datetime.timedelta(days=7 - today.weekday())      # 下周一
+                dt = base + datetime.timedelta(days=target)
+            else:
+                dt = today + datetime.timedelta(days=(target - today.weekday()) % 7)
+            p['date'] = dt.isoformat()
     if form and form.get('date'):
         p['date'] = form['date']
+    if form and str(form.get('days', '')).isdigit():
+        p['days'] = max(1, min(7, int(form['days'])))
+
+    # ── 口述数据覆盖：用户说的排队/关门时间，优先级高于数据集 ─────────────
+    p['overrides'] = []
+    for s in get_spots()['spots']:
+        short = re.split(r'[（(]', s['name'])[0]
+        if not short or short not in t:
+            continue
+        seg = t[t.index(short):t.index(short) + 80]
+        ov = {}
+        mq = re.search(r'排队[^。；，]{0,12}?(\d+)\s*个?\s*(?:多)?\s*小时', seg)
+        if mq:
+            ov['queueMin'] = int(mq[1]) * 60 + 20
+        mc = re.search(r'(\d{1,2})\s*[点:：]\s*(\d{0,2})?\s*(半)?\s*(?:就)?\s*(?:关门|闭馆|打烊|结束)', seg)
+        if mc:
+            hh, mm = int(mc[1]), (30 if mc[3] else int(mc[2] or 0))
+            if re.search(r'下午|晚上|傍晚', seg[:mc.start()]) and hh < 12:
+                hh += 12
+            ov['close'] = '%02d:%02d' % (hh, mm)
+        if ov:
+            ov.update(id=s['id'], name=s['name'])
+            p['overrides'].append(ov)
+
     p['weather'] = next((d for d in w if d['date'] == p['date']), w[0])
     return p
 
@@ -233,32 +370,60 @@ CRITERIA = [
     dict(key='travel', label='路上耗时', kind='定量', weight=1/12, desc='移动分钟 / 12'),
     dict(key='ticket', label='门票成本', kind='定量', weight=1/120, desc='票价 / 120'),
 ]
-WEIGHTS = {c['key']: c['weight'] for c in CRITERIA}
+
+
+def criteria_for(req):
+    """维度表随需求变化——要求「热门」就把口碑权重抬上去，要求停车就加一维。
+
+    界面上展示的就是这张表，所以它必须和真正参与打分的那套权重是同一份，
+    不能在界面上写 2.0、实际按 3.0 算。
+    """
+    out = [dict(c) for c in CRITERIA]
+    if req.get('popular'):
+        for c in out:
+            if c['key'] == 'rating':
+                c['weight'] = 3.0
+                c['desc'] = '评分 × 3（本轮点名要热门）'
+    if req.get('needParking'):
+        out.append(dict(key='facility', label='停车', kind='定性', weight=3.0,
+                        desc='需要停车且景点有车位 +3'))
+    return out
+
+
+def _weights(req):
+    return {c['key']: c['weight'] for c in criteria_for(req)}
+
+
 WAIT_PENALTY = 0.12          # 开门前每多等 1 分钟扣的分（超过 30 分钟起算）
 
 
 def score_parts(s, req, weather, weekend, travel_minutes=0):
     """逐项给分，前端把这张表直接摊开给评审看。"""
+    W = _weights(req)
     p = {}
-    p['rating'] = round(s['rating'] * WEIGHTS['rating'], 2)
-    p['interest'] = round(len([t for t in req['interests'] if t in s['tags']]) * WEIGHTS['interest'], 2)
+    p['rating'] = round(s['rating'] * W['rating'], 2)
+    p['interest'] = round(len([t for t in req['interests'] if t in s['tags']]) * W['interest'], 2)
     p['crowd'] = 0.0
     if 'kids' in req['flags'] and ('亲子' in s['tags'] or '动物' in s['tags']):
-        p['crowd'] += WEIGHTS['crowd']
+        p['crowd'] += W['crowd']
+    if 'infant' in req['flags'] and ('亲子' in s['tags'] or '园林' in s['tags'] or '湖景' in s['tags']):
+        p['crowd'] += W['crowd'] - 1
     if 'couple' in req['flags'] and ('夜景' in s['tags'] or '拍照' in s['tags'] or '湖景' in s['tags']):
-        p['crowd'] += WEIGHTS['crowd'] - 1
+        p['crowd'] += W['crowd'] - 1
     p['weather'] = 0.0
     if req['preferIndoor'] and s['indoor']:
         p['weather'] += 2
     if weather['rainProb'] >= 60:
-        p['weather'] += WEIGHTS['weather'] if s['indoor'] else -WEIGHTS['weather']
+        p['weather'] += W['weather'] if s['indoor'] else -W['weather']
     elif weather['outdoorScore'] >= 4 and not s['indoor']:
         p['weather'] += 2
-    p['access'] = WEIGHTS['access'] if (req['wheelchair'] and s['wheelchair']) else 0.0
-    p['walk'] = round(-(s['walkIntensity'] - 1) * (WEIGHTS['walk'] if req['lowWalk'] else 0.6), 2)
-    p['queue'] = round(-min(s['queueMin'], 40) * WEIGHTS['queue'], 2)
-    p['travel'] = round(-travel_minutes * WEIGHTS['travel'], 2)
-    p['ticket'] = round(-s['ticket'] * WEIGHTS['ticket'], 2)
+    p['access'] = W['access'] if (req['wheelchair'] and s['wheelchair']) else 0.0
+    p['walk'] = round(-(s['walkIntensity'] - 1) * (W['walk'] if req['lowWalk'] else 0.6), 2)
+    p['queue'] = round(-min(s['queueMin'], 40) * W['queue'], 2)
+    p['travel'] = round(-travel_minutes * W['travel'], 2)
+    p['ticket'] = round(-s['ticket'] * W['ticket'], 2)
+    if 'facility' in W:
+        p['facility'] = W['facility'] if s['parking'] else 0.0
     if weekend and not s['indoor']:
         p['crowd'] = round(p['crowd'] - 1, 2)
     return p
@@ -273,13 +438,17 @@ def allowed(s, req, weekday):
         return False, '%s 闭馆' % weekday
     if req['wheelchair'] and not s['wheelchair']:
         return False, '轮椅不便'
+    if req.get('needAed') and not s['aed']:
+        return False, '无 AED'
+    if req.get('needToilet') and not s['accessibleToilet']:
+        return False, '无无障碍厕所'
     if req['lowWalk'] and s['walkIntensity'] > 3:
         return False, '步行强度 %d/5 偏高' % s['walkIntensity']
     return True, ''
 
 
-def explain_rejects(spots, req, weather, weekend, weekday, chosen_ids):
-    """把没进最终行程的点说清楚：硬约束被拒 or 有资格但没排上。"""
+def explain_rejects(spots, req, weather, weekend, weekday, chosen_ids, used_ids=None):
+    """把没进最终行程的点说清楚：硬约束被拒 / 前几天去过 / 有资格但没排上。"""
     reasons = {}
     for s in spots:
         ok, why = allowed(s, req, weekday)
@@ -289,7 +458,10 @@ def explain_rejects(spots, req, weather, weekend, weekday, chosen_ids):
     for s in spots:
         if s['id'] in chosen_ids:
             continue
-        if s['id'] in reasons:
+        if s['id'] in (used_ids or set()):
+            out.append(dict(id=s['id'], name=s['name'], zone=s['zone'], kind='used',
+                            why='已在前面某天排入行程，今天不重复', score=None, parts=None))
+        elif s['id'] in reasons:
             out.append(dict(id=s['id'], name=s['name'], zone=s['zone'], kind='blocked',
                             why=reasons[s['id']]['why'], score=None, parts=None))
         else:
@@ -297,7 +469,7 @@ def explain_rejects(spots, req, weather, weekend, weekday, chosen_ids):
             out.append(dict(id=s['id'], name=s['name'], zone=s['zone'], kind='passed',
                             why='满足准入，评分未进当天前列', score=round(sum(parts.values()), 2),
                             parts=parts))
-    out.sort(key=lambda x: (0 if x['kind'] == 'blocked' else 1, -(x['score'] or 0)))
+    out.sort(key=lambda x: (0 if x['kind'] == 'blocked' else (1 if x['kind'] == 'used' else 2), -(x['score'] or 0)))
     return out
 
 
@@ -308,7 +480,10 @@ def pick_food(food, near, req, zone=None):
         cands = same or cands
     if not cands:
         return None
-    return min(cands, key=lambda f: haversine(near, f) + f['queueMin'] / 30 + f['pricePerPerson'] / 60)
+    ranked = sorted(cands, key=lambda f: haversine(near, f) + f['queueMin'] / 30 + f['pricePerPerson'] / 60)
+    if len(ranked) > 1:
+        return ranked[(req.get('day', 1) - 1) % min(3, len(ranked))]
+    return ranked[0]
 
 
 def build_group(spots, food, hotel, weather, req, transport, start_min, end_min, weekend, weekday, label,
@@ -327,9 +502,12 @@ def build_group(spots, food, hotel, weather, req, transport, start_min, end_min,
     cur = {'lat': hotel['lat'], 'lon': hotel['lon'], 'name': hotel['name']}
     t = start_min
     lunch_done = False
+    nap_done = False
     last_rest = start_min
     LUNCH_FROM, LUNCH_TO = 11 * 60 + 30, 13 * 60 + 30
     size = req.get('groupSize') or 1
+    max_spots = int(req.get('maxPerDay') or 99)
+    NAP_MIN = 80
 
     def lunch_entries(now):
         nonlocal cur, local_fare, walk_km, tickets
@@ -358,12 +536,31 @@ def build_group(spots, food, hotel, weather, req, transport, start_min, end_min,
         cur = f
         return begin + 50, rows
 
-    while t < end_min - 25:
+    while t < end_min - 25 and len(picked) < max_spots:
         # 午餐：11:30 起优先安排，避免为了塞景点把午饭拖到下午
         if allow_lunch and not lunch_done and t >= LUNCH_FROM - 15:
             nt, rows = lunch_entries(t)
             if rows:
                 timeline += rows; t = nt; lunch_done = True
+                continue
+
+        # 婴幼儿午睡：回酒店睡 80 分钟，下午才不崩
+        if req.get('nap') and not nap_done and (lunch_done or t >= 13 * 60):
+            back = travel_leg(cur, hotel, profile, transport)
+            arrive = t + back['minutes']
+            if arrive + NAP_MIN + 45 <= end_min:
+                if back['minutes'] >= 5:
+                    timeline.append(dict(type='travel', start=hhmm_text(t), end=hhmm_text(arrive),
+                                         name='返回 %s' % hotel['name'], minutes=back['minutes'],
+                                         mode=back['mode'], km=back['km'], reason='带婴幼儿回房午睡'))
+                timeline.append(dict(type='nap', start=hhmm_text(arrive), end=hhmm_text(arrive + NAP_MIN),
+                                     name='酒店午睡', minutes=NAP_MIN,
+                                     reason='同行有 2 岁以下婴幼儿，中午回房睡一觉，下午不闹'))
+                local_fare += back['fare']
+                walk_km += back['km'] if back['mode'] == '步行' else 0
+                t = arrive + NAP_MIN
+                cur = hotel
+                nap_done = True
                 continue
 
         # 低步行人群每 2.5 小时休息一次
@@ -474,6 +671,7 @@ def build_group(spots, food, hotel, weather, req, transport, start_min, end_min,
     stats = dict(spots=len(done), queueMin=sum(x.get('queue', 0) for x in done),
                  walkKm=round(walk_km, 1), ticket=tickets, localFare=local_fare,
                  durationMin=t - start_min, end=hhmm_text(t),
+                 nap=NAP_MIN if nap_done else 0,
                  meal=sum(x.get('price', 0) for x in timeline if x['type'] == 'meal'))
     return dict(id=label['id'], name=label['name'], members=label['members'], profile=label['profile'],
                 timeline=timeline, stats=stats, notes=[],
@@ -710,56 +908,103 @@ def benchmark_scaling(ns=(4, 5, 6, 7, 8), seed=11):
                 note='合成算例：n 个虚拟景点、同一套评分与时间窗约束。brute 为全排列穷举的可证明最优。')
 
 
-# ── 完整规划：单人 / 分组 ────────────────────────────────────────────────────
-def plan(req):
-    _CALLS.clear()
-    spots_doc = api('GET /api/spots', get_spots)
-    spots, food = spots_doc['spots'], spots_doc['food']
-    weather_all = api('GET /api/weather', get_weather)['days']
-    transport = api('GET /api/transport', get_transport)
-    hotels = api('GET /api/hotels', get_hotels)['hotels']
-    weather = next((d for d in weather_all if d['date'] == req['date']), weather_all[0])
-    weekday = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][datetime.date.fromisoformat(req['date']).weekday()]
+# ── 完整规划：单人 / 分组 / 多日 ──────────────────────────────────────────────
+FLAG_CN = dict(elderly='含长辈', kids='含孩子', couple='情侣', friends='朋友同行')
+WEEK_CN = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+
+
+def pick_hotel(req, hotels, spots=None):
+    """住宿：先满足硬条件（预算 / 无障碍厕所 / 停车），再比「离景区近」。
+
+    返回 (hotel, notes) —— notes 用于把「预算内没有满足条件的房」这类
+    真实取舍如实说出来，而不是悄悄选一个超预算的。
+    """
+    notes = []
+    pool = list(hotels)
+
+    if req.get('needToilet') or req['wheelchair']:
+        strict = [h for h in pool if h['wheelchair'] and h['accessibleToilet']]
+        if strict:
+            pool = strict
+        else:
+            notes.append(dict(level='warn', title='没有无障碍房',
+                              text='样例住宿里没有同时满足「轮椅可达 + 无障碍厕所」的房间，已放宽到最接近的一家。'))
+
+    if req.get('needParking'):
+        withp = [h for h in pool if h['parking']]
+        if withp:
+            pool = withp
+        else:
+            notes.append(dict(level='warn', title='没有带车位的住宿',
+                              text='预算内没有带停车位的住宿，需就近找社会停车场。'))
+
+    cap = req.get('hotelMax')
+    if cap:
+        cheap = [h for h in pool if h['price'] <= cap]
+        if cheap:
+            pool = cheap
+        else:
+            lo = min(pool, key=lambda h: h['price'])
+            notes.append(dict(level='warn', title='预算 %d 元内无可行住宿' % cap,
+                              text='满足无障碍条件的样例房价最低是 %s ¥%d/晚，超出预算 ¥%d。要么把住房预算提到 %d，要么接受没有无障碍厕所的房源（对腿脚不便的老人不建议）。' % (
+                                  lo['name'], lo['price'], lo['price'] - cap, lo['price'])))
+            pool = [lo]
+
+    def median_km(h):
+        if not spots:
+            return 0
+        ds = sorted(haversine(h, s) for s in spots)
+        return ds[len(ds) // 2]
+
+    hotel = min(pool, key=lambda h: (round(median_km(h), 1), h['price']))
+    return hotel, notes
+
+
+def plan_day(req, day_no, spots, food, hotel, transport, weather, weekday, used, is_last,
+             win_start=None, win_end=None):
+    """排一天：分组求解 → 当天路线 / 无障碍 / 落选归因。
+
+    used 是前面几天已经排过的景点 id，本日不再重复出现在主线上；
+    win_start / win_end 是这一天的真实可用窗口（到达日下午才起算、
+    返程日要提前去机场），不传就用需求里的默认时段。
+    """
+    req = dict(req)
+    req['day'] = day_no
     weekend = weekday in ('周六', '周日')
+    start_min = hhmm(win_start or req['start'])
+    end_min = hhmm(win_end or req['end'])
+    allow_lunch = (end_min - start_min) >= 300
 
-    # 选酒店：无障碍优先，其次价格
-    hotel = min(hotels, key=lambda h: ((0 if (not req['wheelchair'] or h['wheelchair']) else 1), h['price']))
-    if req['wheelchair'] and not hotel['wheelchair']:
-        hotel = next((h for h in hotels if h['wheelchair']), hotels[0])
-
-    start_min, end_min = hhmm(req['start']), hhmm(req['end'])
-    allow_lunch = (end_min - start_min) >= 330
     decisions = []
-    FLAG_CN = dict(elderly='含长辈', kids='含孩子', couple='情侣', friends='朋友同行')
-    heard = [t for t in req['interests']] + [FLAG_CN.get(f, f) for f in req['flags']]
-    if req['wheelchair']:
-        heard.append('轮椅可达')
-    if req['lowWalk']:
-        heard.append('低步行')
-    decisions.append(dict(level='info', title='理解需求',
-                          text='%s · %s %s · %d 人 · %s–%s%s' % (
-                              req['city'], req['date'], weekday, req['people'], req['start'], req['end'],
-                              ('，已记录：' + '、'.join(dict.fromkeys(heard))) if heard else '')))
-    decisions.append(dict(level='info', title='天气纳入排程',
-                          text='%s %s %d℃/%d℃ 降水 %d%%，%s' % (weather['date'], weather['condition'], weather['low'], weather['high'], weather['rainProb'], weather['tip'])))
+    decisions.append(dict(level='info', title='第 %d 天' % day_no,
+                          text='%s %s · %s · %d℃/%d℃ 降水 %d%%%s' % (
+                              weather['date'], weekday, weather['condition'],
+                              weather['low'], weather['high'], weather['rainProb'],
+                              ('，%s' % weather['tip']) if weather.get('tip') else '')))
+    for tip in weather_advice(weather):
+        decisions.append(dict(level='info', title='出行准备', text=tip))
+    if win_start and win_start != req['start']:
+        decisions.append(dict(level='warn', title='当天 %s 才开始' % win_start,
+                              text='到达日下午才落地，上午不能排景点；当天只按 %s–%s 计算。' % (hhmm_text(start_min), hhmm_text(end_min))))
+    if win_end and win_end != req['end']:
+        decisions.append(dict(level='warn', title='当天 %s 收尾' % win_end,
+                              text='返程航班按「提前 2 小时值机 + 1 小时进城」倒推，市区行程 %s 前必须结束。' % win_end))
     if not allow_lunch:
-        decisions.append(dict(level='warn', title='半天行程',
-                              text='可用时间不足 5.5 小时，不单独安排正餐，把整段时间留给景点；如要用餐可把结束时间调晚。'))
-    if not req['start'].startswith('09'):
-        decisions.append(dict(level='warn', title='时段压缩', text='出发时间 %s，上午可安排的项目减少，优先保留高评分景点。' % req['start']))
+        decisions.append(dict(level='warn', title='当天时间不足 5.5 小时',
+                              text='不单独安排正餐，把整段时间留给景点；如要用餐可把结束时间调晚。'))
 
-    groups = []
+    # ── 分组 ──────────────────────────────────────────────────────────────
     split = ('elderly' in req['flags'] and 'kids' in req['flags']) or (req['people'] >= 4 and len(req['flags']) >= 2)
-    conflicts, merge = [], []
+    conflicts, merge, groups = [], [], []
 
     if split:
         seniors = max(1, req['people'] // 2)
         kids_n = max(1, req['people'] - seniors)
-        a_req = dict(req); a_req.update(wheelchair=True, lowWalk=True, groupSize=seniors)
+        a_req = dict(req); a_req.update(lowWalk=True, needToilet=True, groupSize=seniors)
         a_req['interests'] = [i for i in req['interests'] if i != '亲子']   # 长辈组不追亲子项
         ga = solve_group(spots, food, hotel, weather, a_req, transport, start_min, end_min, weekend, weekday,
                          dict(id='A', name='长辈组', members=seniors, profile='低步行 · 需无障碍'),
-                         allow_lunch=allow_lunch, seed=20261121)
+                         allow_lunch=allow_lunch, seed=20261121 + day_no, skip=used)
         lunch = next((x for x in ga['timeline'] if x['type'] == 'meal'), None)
         lunch_id = next((f['id'] for f in food if lunch and f['name'] == lunch['name']), None)
         a_names = {x['name'] for x in ga['timeline'] if x['type'] == 'spot'}
@@ -767,51 +1012,38 @@ def plan(req):
         b_req = dict(req); b_req.update(wheelchair=False, lowWalk=False, groupSize=kids_n)
         gb = solve_group(spots, food, hotel, weather, b_req, transport, start_min, end_min, weekend, weekday,
                          dict(id='B', name='亲子组', members=kids_n, profile='可爬坡 · 偏好亲子'),
-                         lunch_place=lunch_id, skip=overlap, allow_lunch=allow_lunch, seed=7)
+                         lunch_place=lunch_id, skip=(used | overlap), allow_lunch=allow_lunch, seed=7 + day_no)
         groups = [ga, gb]
         decisions.append(dict(level='warn', title='分组成行',
                               text='需求里同时有长辈与孩子，拆成两组：长辈组走无障碍低步行路线，亲子组走高强度路线，午餐在 %s 汇合。' % (lunch['name'] if lunch else '就近餐厅')))
         if overlap:
             names = '、'.join(s['name'] for s in spots if s['id'] in overlap)
-            conflicts.append(dict(type='reroute', spots=names,
+            conflicts.append(dict(day=day_no, type='reroute', spots=names,
                                   note='亲子组本来会与长辈组在同一时段撞点，已改走其他景点错峰，避免带着老人孩子一起排队'))
         if lunch:
-            merge.append(dict(at=lunch['start'], place=lunch['name'],
+            merge.append(dict(day=day_no, at=lunch['start'], place=lunch['name'],
                               note='两组同店午餐汇合；餐后可继续同行，也可按各自节奏分开'))
     else:
         r_req = dict(req); r_req['groupSize'] = req['people']
         label = dict(id='A', name='全队', members=req['people'],
                      profile='轮椅 · 低步行' if req['wheelchair'] else ('低步行' if req['lowWalk'] else '常规节奏'))
         groups = [solve_group(spots, food, hotel, weather, r_req, transport, start_min, end_min, weekend, weekday, label,
-                              allow_lunch=allow_lunch, seed=20261121)]
+                              allow_lunch=allow_lunch, seed=20261121 + day_no * 101, skip=used)]
 
+    empty = all(not g['picked'] for g in groups)
+    if empty:
+        decisions.append(dict(level='warn', title='当天没有可排的景点',
+                              text='候选景点已在前几天排完，或全部被硬约束排除；建议缩短天数或放宽无障碍/步行限制。'))
 
-    # 预算
-    people = req['people']
-    ticket = sum(g['stats']['ticket'] for g in groups)
-    local_fare = sum(g['stats']['localFare'] for g in groups)
-    meals = sum(g['stats']['meal'] * g['members'] for g in groups)
-    nights = 1
-    stay = hotel['price'] * max(1, math.ceil(people / 2))
-    intercity = []
-    if req.get('fromCity'):
-        routes = [r for r in transport['routes'] if r['from'] == req['fromCity'] and r['to'] == req['city']]
-        if routes:
-            r0 = min(routes, key=lambda r: r['price'])
-            intercity = [dict(code=r0['code'], mode=r0['mode'], depart=r0['depart'], arrive=r0['arrive'], price=r0['price'] * people)]
-    inter_total = sum(x['price'] for x in intercity)
-    total = ticket + local_fare + meals + stay + inter_total
-
-    route_points = []
+    # ── 当天汇总 ──────────────────────────────────────────────────────────
+    route_points, access_points = [], []
     for g in groups:
         seq = 0
         for x in g['timeline']:
             if x['type'] == 'spot':
                 seq += 1
-                route_points.append(dict(group=g['id'], seq=seq, name=x['name'], lat=x['lat'], lon=x['lon'],
+                route_points.append(dict(group=g['id'], day=day_no, seq=seq, name=x['name'], lat=x['lat'], lon=x['lon'],
                                          start=x['start'], end=x['end']))
-
-    access_points = []
     for g in groups:
         for x in g['timeline']:
             if x['type'] == 'spot':
@@ -821,21 +1053,269 @@ def plan(req):
                                               aed=a['aed'], parking=a['parking']))
 
     chosen = {i for g in groups for i in g['picked']}
-    rejected = explain_rejects(spots, req, weather, weekend, weekday, chosen)
+    rejected = explain_rejects(spots, req, weather, weekend, weekday, chosen, used)
+
+    ticket = sum(g['stats']['ticket'] for g in groups)
+    local_fare = sum(g['stats']['localFare'] for g in groups)
+    meals = sum(g['stats']['meal'] * g['members'] for g in groups)
+    stats = dict(spots=sum(g['stats']['spots'] for g in groups),
+                 queueMin=sum(g['stats']['queueMin'] for g in groups),
+                 walkKm=round(sum(g['stats']['walkKm'] for g in groups), 1),
+                 ticket=ticket, localFare=local_fare, meals=meals,
+                 score=round(sum(objective(g) for g in groups), 1),
+                 durationMin=max((g['stats']['durationMin'] for g in groups), default=0))
+
+    return dict(day=day_no, date=weather['date'], weekday=weekday, weather=weather,
+                weekend=weekend, groups=groups, decisions=decisions,
+                window=dict(start=hhmm_text(start_min), end=hhmm_text(end_min)),
+                conflicts=conflicts, merge=merge, allowLunch=allow_lunch,
+                route=dict(points=route_points), access=access_points,
+                rejected=rejected[:8], stats=stats,
+                budget=dict(ticket=ticket, localFare=local_fare, meals=meals,
+                            total=ticket + local_fare + meals),
+                picked=sorted(chosen))
+
+
+def apply_overrides(spots, overrides):
+    """把用户口述的排队/闭馆时间覆盖到数据集上。
+
+    用户说「茶叶博物馆排队一个多小时、四点半就关门」，比数据里的旧值更可信——
+    数据是样例，用户是刚问过的人。覆盖了就在界面上明说，不偷偷改。
+    """
+    if not overrides:
+        return spots, []
+    out, log = [], []
+    omap = {o['id']: o for o in overrides}
+    for s in spots:
+        o = omap.get(s['id'])
+        if not o:
+            out.append(s)
+            continue
+        t = dict(s)
+        bits = []
+        if 'queueMin' in o:
+            bits.append('排队 %d → %d 分钟' % (t['queueMin'], o['queueMin']))
+            t['queueMin'] = o['queueMin']
+        if 'close' in o:
+            bits.append('闭馆 %s → %s' % (t['close'], o['close']))
+            t['close'] = o['close']
+        t['note'] = (t.get('note', '') + '（按你的口述修正）').strip()
+        out.append(t)
+        log.append(dict(level='ok', title='按你的口述修正 %s' % s['name'],
+                        text='；'.join(bits) + '。数据里是样例值，这里以你现场问到的为准。'))
+    return out, log
+
+
+def plan(req):
+    _CALLS.clear()
+    spots_doc = api('GET /api/spots', get_spots)
+    spots, food = spots_doc['spots'], spots_doc['food']
+    weather_all = api('GET /api/weather', get_weather)['days']
+    transport = api('GET /api/transport', get_transport)
+    hotels = api('GET /api/hotels', get_hotels)['hotels']
+
+    spots, ov_log = apply_overrides(spots, req.get('overrides') or [])
+
+    ndays = max(1, min(7, int(req.get('days') or 1)))
+    start_date = datetime.date.fromisoformat(req['date'])
+    people = req['people']
+
+    # ── 天气：多日时按日期依次取，超出样例范围就按最近一天的气候复用 ──
+    wmap = {d['date']: d for d in weather_all}
+    day_weather = []
+    for i in range(ndays):
+        dt = start_date + datetime.timedelta(days=i)
+        key = dt.isoformat()
+        if key in wmap:
+            day_weather.append(wmap[key])
+        else:
+            base = dict(weather_all[min(i, len(weather_all) - 1)])
+            base['date'] = key
+            base['tip'] = (base.get('tip') or '') + '（按样例气候外推）'
+            day_weather.append(base)
+
+    # ── 住宿 ──
+    hotel, hotel_notes = pick_hotel(req, hotels, spots)
+
+    # ── 每天排多少个点：宁可少排，也别排成赶场 ──
+    per_day = 5
+    if req.get('relaxed'):
+        per_day = 3
+    elif req.get('infants') or ('elderly' in req['flags'] and req['lowWalk']):
+        per_day = 4
+    if req.get('spotTarget'):
+        per_day = max(1, min(per_day, math.ceil(req['spotTarget'] / max(1, ndays))))
+    req = dict(req)
+    req['maxPerDay'] = per_day
+
+    # ── 每日真实可用窗口：到达日、返程日重新算 ──
+    def window(i):
+        s, e = req['start'], req['end']
+        if i == 0 and req.get('arriveAfternoon'):
+            s = '13:30'
+        if i == ndays - 1 and req.get('flightOut'):
+            cap = hhmm(req['flightOut']) - 180          # 2h 值机 + 1h 进城
+            if cap > hhmm(s):
+                e = hhmm_text(cap)
+        return s, e
+
+    # ── 全局决策 ──
+    decisions = []
+    heard = [t for t in req['interests']] + [FLAG_CN.get(f, f) for f in req['flags']]
+    if req['wheelchair']:
+        heard.append('轮椅可达')
+    if req['lowWalk']:
+        heard.append('低步行')
+    if req.get('needAed'):
+        heard.append('需 AED')
+    if req.get('needToilet'):
+        heard.append('需无障碍厕所')
+    if req.get('needParking'):
+        heard.append('需停车')
+    if req.get('infants'):
+        heard.append('%d 个婴幼儿' % req['infants'])
+    decisions.append(dict(level='info', title='理解需求',
+                          text='%s · %s 起 %d 天 · %d 人 · %s–%s%s' % (
+                              req['city'], req['date'], ndays, people,
+                              window(0)[0], window(ndays - 1)[1],
+                              ('，已记录：' + '、'.join(dict.fromkeys(heard))) if heard else '')))
+
+    if req.get('infants'):
+        decisions.append(dict(level='warn', title='按婴幼儿作息排',
+                              text='同行有 %d 岁以下婴幼儿，每天 %s 固定回 %s 睡 80 分钟，睡醒再出门；这也是每天只排 %d 个点的原因。' % (
+                                  3, '12:30', hotel['name'], per_day)))
+    if req.get('relaxed'):
+        decisions.append(dict(level='info', title='节奏按「不赶」处理',
+                              text='每天最多 %d 个停留点，景点之间留出转场与休息；宁可少去一个，也不把一天塞满。' % per_day))
+
+    decisions.append(dict(level='info', title='机票与住宿不代订',
+                          text='这里只做方案与价格估算，不下单、不占座。机票按样例航线给出价格区间，酒店按样例房价估算，实际请以购票/订房页面为准。'))
+
+    if req.get('popular'):
+        decisions.append(dict(level='info', title='口碑权重上调',
+                              text='你点名要「热门」，所以评分这一维的权重从 2.0 提到 3.0，同样条件下更偏高分景点。'))
+
+    if req.get('flightOut'):
+        decisions.append(dict(level='info', title='返程航班 %s' % req['flightOut'],
+                              text='按提前 2 小时值机 + 1 小时进城倒推，最后一天市区行程只排到 %s。' % window(ndays - 1)[1]))
+    if req.get('arriveAfternoon'):
+        decisions.append(dict(level='info', title='到达日下午才落地',
+                              text='第一天从 %s 起算，上午不进任何景点；这一天只当半天用。' % window(0)[0]))
+
+    decisions += ov_log
+    if hotel_notes:
+        decisions += hotel_notes
+
+    # ── 逐日求解 ──
+    days, used, all_conflicts, all_merge = [], set(), [], []
+    for i in range(ndays):
+        dt = start_date + datetime.timedelta(days=i)
+        weekday = WEEK_CN[dt.weekday()]
+        ws, we = window(i)
+        d = plan_day(req, i + 1, spots, food, hotel, transport, day_weather[i],
+                     weekday, set(used), i == ndays - 1, win_start=ws, win_end=we)
+        days.append(d)
+        all_conflicts += d['conflicts']
+        all_merge += d['merge']
+        new = {x['id'] for x in spots if x['id'] in set(d['picked'])}
+        used |= new
+        if not new and len(days) > 1 and i == ndays - 1:
+            days.pop()
+            decisions.append(dict(level='bad', title='第 %d 天排不出新景点' % (i + 1),
+                                  text='候选池在这天已经用尽（硬约束 + 前几天已去过一起扣掉），所以实际只排了 %d 天。' % i))
+            break
+        if not new and len(days) > 1:
+            days.pop()
+            decisions.append(dict(level='bad', title='第 %d 天起排不出新景点' % (i + 1),
+                                  text='候选池在第 %d 天用尽（硬约束 + 前几天已去过一起扣掉），实际只排了 %d 天。想要更长天数可以放宽无障碍或步行限制。' % (i + 1, i)))
+            break
+
+    if not days:
+        ws, we = window(0)
+        days = [plan_day(req, 1, spots, food, hotel, transport, day_weather[0],
+                         WEEK_CN[start_date.weekday()], set(), True, win_start=ws, win_end=we)]
+
+    # ── 用户点名的景点如果没排进去，必须说清楚为什么 ──
+    picked_all = {i for d in days for i in d['picked']}
+    for ov in (req.get('overrides') or []):
+        if ov['id'] in picked_all:
+            decisions.append(dict(level='ok', title='你点名的%s已排入' % ov['name'],
+                                  text='按你给的排队 %d 分钟、闭馆 %s 重算过时刻表，排得进去。' % (
+                                      ov.get('queueMin', 0), ov.get('close', ''))))
+            continue
+        s0 = next((x for x in spots if x['id'] == ov['id']), None)
+        if not s0:
+            continue
+        latest = hhmm(s0['close']) - s0['queueMin'] - s0['durationMin']
+        decisions.append(dict(level='bad', title='你点名的%s这次没排进去' % s0['name'],
+                              text='排队 %d 分钟 + 游览 %d 分钟，闭馆 %s，最晚必须 %s 前到。这两天要留午餐、婴幼儿午睡、返程提前 3 小时收尾，硬塞进去会挤掉两个别的点，所以按「不赶」的原则放弃了。想保留它就把其中一天改成上午先去这里。' % (
+                                  s0['queueMin'], s0['durationMin'], s0['close'], hhmm_text(latest))))
+
+    # ── 城际往返 ──
+    intercity = []
+    routes_to = [r for r in transport['routes'] if r['to'] == req['city']]
+    if req.get('fromCity'):
+        routes = [r for r in routes_to if r['from'] == req['fromCity']]
+        if routes:
+            r0 = min(routes, key=lambda r: r['price'])
+            intercity = [dict(code=r0['code'], mode=r0['mode'], depart=r0['depart'], arrive=r0['arrive'],
+                              price=r0['price'] * people * 2, note='往返 ×%d 人' % people)]
+    if not intercity and routes_to:
+        lo = min(routes_to, key=lambda r: r['price'])
+        hi = max(routes_to, key=lambda r: r['price'])
+        decisions.append(dict(level='warn', title='机票请自行购买',
+                              text='你没给出发城市，无法锁定具体航班。样例航线到%s的单程价为 ¥%d–¥%d/人，%d 人往返大约 ¥%s–¥%s，已在预算里按最低价计入。' % (
+                                  req['city'], lo['price'], hi['price'], people,
+                                  format(lo['price'] * people * 2, ','), format(hi['price'] * people * 2, ','))))
+
+    # ── 全局预算 ──
+    ticket = sum(d['budget']['ticket'] for d in days)
+    local_fare = sum(d['budget']['localFare'] for d in days)
+    meals = sum(d['budget']['meals'] for d in days)
+    nights = len(days)
+    rooms = max(1, math.ceil(people / 2))
+    stay = hotel['price'] * rooms * nights
+    inter_total = sum(x['price'] for x in intercity)
+    total = ticket + local_fare + meals + stay + inter_total
+    per_person = round(total / max(1, people))
+
+    # 性价比：每 100 元换来多少「行程得分」，同预算下比绝对花费更有意义
+    score_all = sum(d['stats']['score'] for d in days)
+    value = round(score_all / max(1, total) * 100, 2)
+    decisions.append(dict(level='ok', title='性价比 %.2f 分/百元' % value,
+                          text='全程 %d 个停留点、合计 %.0f 分，总花费 %s，人均 %s。在同城同天数的方案里，这个比值越高越划算——加钱只应该加在「分涨得快」的地方。' % (
+                              sum(d['stats']['spots'] for d in days), score_all,
+                              '¥' + format(total, ','), '¥' + format(per_person, ','))))
+
+    route_points = [p for d in days for p in d['route']['points']]
+    access_points = [p for d in days for p in d['access']]
+    first = max(days, key=lambda d: d['stats']['score'])
 
     return dict(
-        request=dict(city=req['city'], date=req['date'], weekday=weekday, people=people,
-                     start=req['start'], end=req['end'], interests=req['interests'],
-                     flags=req['flags'], wheelchair=req['wheelchair'], lowWalk=req['lowWalk']),
-        weather=weather, hotel=hotel, groups=groups, merge=merge, conflicts=conflicts,
+        request=dict(city=req['city'], date=req['date'], weekday=days[0]['weekday'], people=people,
+                     start=days[0]['window']['start'], end=days[-1]['window']['end'],
+                     interests=req['interests'], days=len(days),
+                     flags=req['flags'], wheelchair=req['wheelchair'], lowWalk=req['lowWalk'],
+                     infants=req.get('infants', 0), nap=req.get('nap', False),
+                     needAed=req.get('needAed', False), needToilet=req.get('needToilet', False),
+                     needParking=req.get('needParking', False), hotelMax=req.get('hotelMax'),
+                     spotTarget=req.get('spotTarget'), flightOut=req.get('flightOut'),
+                     relaxed=req.get('relaxed', False), perDayCap=per_day),
+        weather=days[0]['weather'], hotel=hotel,
+        days=days,
+        groups=first['groups'],
+        criteria=criteria_for(req),
+        merge=all_merge, conflicts=all_conflicts,
         route=dict(points=route_points), access=access_points,
-        criteria=CRITERIA, rejected=rejected[:10],
-        budget=dict(ticket=ticket, localFare=local_fare, meals=meals, hotel=stay, intercity=intercity,
-                    intercityTotal=inter_total, total=total, perPerson=round(total / max(1, people))),
+        rejected=days[0]['rejected'],
+        budget=dict(ticket=ticket, localFare=local_fare, meals=meals, hotel=stay, nights=nights, rooms=rooms,
+                    intercity=intercity, intercityTotal=inter_total, total=total,
+                    perPerson=per_person, perDay=round(total / max(1, len(days))),
+                    value=value, score=round(score_all, 1)),
         decisions=decisions,
         apiCalls=list(_CALLS),
         dataset=dict(city=req['city'], spots=len(spots), hotels=len(hotels), weatherDays=len(weather_all),
-                     transportRoutes=len(transport['routes']), version=load('spots')['version']),
+                     transportRoutes=len(transport['routes']), version=spots_doc['version']),
         generatedAt=datetime.datetime.now().isoformat(timespec='seconds'),
     )
 
@@ -895,7 +1375,7 @@ class Handler(SimpleHTTPRequestHandler):
             payload = json.loads(self.rfile.read(n) or b'{}')
             text = (payload.get('text') or '').strip()
             if len(text) < 2:
-                return self._json(dict(error='说一句想去哪、和谁、想玩什么，比如「带爸妈去杭州一天，腿脚不好」'))
+                return self._json(dict(error='说一句想去哪、和谁、想玩什么，比如「带爸妈去杭州三天，腿脚不好」'))
             req = parse_request(text, payload.get('form') or {})
             m = re.search(r'从\s*([\u4e00-\u9fa5]{2,4})\s*(?:出发|去|到)', text)
             if m:
@@ -908,5 +1388,5 @@ class Handler(SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 8000))
-    print('旅迹 LVJI 一日行程运行于 http://%s:%d' % (host, port), flush=True)
+    print('旅迹 LVJI · 杭州行程编排运行于 http://%s:%d' % (host, port), flush=True)
     ThreadingHTTPServer((host, port), Handler).serve_forever()
