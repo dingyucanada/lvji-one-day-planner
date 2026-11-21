@@ -1,0 +1,58 @@
+<Slide style={{ background: '#0C3B3C', padding: 0 }}>
+    <Box style={{ position: 'absolute', top: 0, left: 0, width: 1280, height: 720 }}>
+        <svg width={1280} height={720} viewBox='0 0 1280 720'>
+            {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+                <line x1={120 + i * 160} y1={0} x2={120 + i * 160} y2={720} stroke='#FFFFFF' strokeOpacity='0.055' strokeWidth='1' />
+            ))}
+            {[0, 1, 2, 3, 4].map(i => (
+                <line x1={0} y1={80 + i * 140} x2={1280} y2={80 + i * 140} stroke='#FFFFFF' strokeOpacity='0.055' strokeWidth='1' />
+            ))}
+            <circle cx={1080} cy={182} r={132} fill='none' stroke='#D8623B' strokeOpacity='0.28' strokeWidth='1.2' />
+            <circle cx={1080} cy={182} r={196} fill='none' stroke='#FFFFFF' strokeOpacity='0.08' strokeWidth='1' />
+            <circle cx={1080} cy={182} r={9} fill='#D8623B' />
+            <path d='M948 300 L1010 216 L1080 182 L1168 128' fill='none' stroke='#D8623B' strokeOpacity='0.5' strokeWidth='1.6' strokeDasharray='5 6' />
+        </svg>
+    </Box>
+
+    <Box style={{ width: 1280, height: 720, padding: '60px 60px 56px 60px', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+        <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                <svg width={38} height={38} viewBox='0 0 48 48'>
+                    <path d='M8 34c6-14 26-14 32 0' fill='none' stroke='#FBF8F3' strokeWidth='3' strokeLinecap='round' />
+                    <circle cx='24' cy='13' r='5' fill='none' stroke='#FBF8F3' strokeWidth='3' />
+                    <path d='M24 18v9' stroke='#FBF8F3' strokeWidth='3' strokeLinecap='round' />
+                </svg>
+                <Box style={{ flexDirection: 'column' }}>
+                    <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#FBF8F3', letterSpacing: 2 }}>旅迹</Text>
+                    <Text style={{ fontSize: 12, color: '#8FA9A4', letterSpacing: 4 }}>LVJI · ONE DAY</Text>
+                </Box>
+            </Box>
+            <Text style={{ fontSize: 15, color: '#8FA9A4', letterSpacing: 1 }}>挑战 2 · 旅行规划应用</Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'column' }}>
+            <Text style={{ fontSize: 64, fontWeight: 'bold', color: '#FBF8F3', lineHeight: 1.18, letterSpacing: -1 }}>
+                一句话，
+                <br />
+                排好一天。
+            </Text>
+            <Box style={{ width: 74, height: 3, background: '#D8623B', marginTop: 30, marginBottom: 26 }} />
+            <Text style={{ fontSize: 21, color: '#C3D2CE', lineHeight: 1.7 }}>
+                把「带坐轮椅的奶奶和两个孩子去杭州玩一天」
+                <br />
+                变成一张每站都卡着开放时间、排队与路况的时间轴。
+            </Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', gap: 44, alignItems: 'flex-end' }}>
+            <Box style={{ flexDirection: 'column', gap: 6 }}>
+                <Text style={{ fontSize: 13, color: '#7C918D', letterSpacing: 2 }}>数据基础</Text>
+                <Text style={{ fontSize: 16, color: '#E6EEEC' }}>自建前端 · 本地数据 · 本地接口</Text>
+            </Box>
+            <Box style={{ flexDirection: 'column', gap: 6 }}>
+                <Text style={{ fontSize: 13, color: '#7C918D', letterSpacing: 2 }}>求解方法</Text>
+                <Text style={{ fontSize: 16, color: '#E6EEEC' }}>九维加权 · 贪心构造 + ILS</Text>
+            </Box>
+        </Box>
+    </Box>
+</Slide>

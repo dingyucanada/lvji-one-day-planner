@@ -1,0 +1,61 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#0C3B3C' }} />
+        <Text style={{ fontSize: 34, fontWeight: 'bold', color: '#12211F' }}>和「让大模型直接写行程」差在哪</Text>
+    </Box>
+    <Text style={{ fontSize: 17, color: '#435B57', marginTop: 14 }}>
+        同样一句话，两条路径。差别不在文字好不好看，在这几件事能不能被验证。
+    </Text>
+
+    <Box style={{ marginTop: 26, height: 452 }}>
+        <Table
+            style={{ width: '100%', height: '100%' }}
+            defaultTextStyle={{ fontSize: 15, textAlign: 'left', color: '#12211F' }}
+            defaultCellStyle={{
+                border: { bottom: { width: 1, color: '#E4DCD0' } },
+                paddingLeft: 16,
+                paddingRight: 16,
+                paddingTop: 10,
+                paddingBottom: 10,
+            }}
+            cells={[
+                [
+                    { text: '对比维度', textStyle: { bold: true, color: '#435B57', fontSize: 14 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                    { text: '让大模型直接写', textStyle: { bold: true, color: '#435B57', fontSize: 14 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                    { text: '本方案（约束求解）', textStyle: { bold: true, color: '#0C3B3C', fontSize: 14 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                ],
+                [
+                    { text: '时间可行性', textStyle: { bold: true, color: '#12211F' } },
+                    '只能估算，给的时刻表常与真实开放时间对不上',
+                    '每站 begin ≥ 开门、leave ≤ 闭馆，由代码硬校验，不满足就不生成',
+                ],
+                [
+                    { text: '约束满足', textStyle: { bold: true, color: '#12211F' } },
+                    '口头遵守，周一闭馆、轮椅不可达容易被忽略',
+                    '硬约束先过滤再打分；需要轮椅时，路线上的站点 100% 可达',
+                ],
+                [
+                    { text: '结果可复现', textStyle: { bold: true, color: '#12211F' } },
+                    '同一句话生成两次，顺序与时刻都不一样',
+                    '随机种子固定，同一需求的输出逐字节一致',
+                ],
+                [
+                    { text: '失败可解释', textStyle: { bold: true, color: '#12211F' } },
+                    '说不清为什么没排上某个想去的点',
+                    '每个落选点都给出原因：闭馆 / 轮椅不便 / 步行超限 / 评分不足',
+                ],
+                [
+                    { text: '最优性', textStyle: { bold: true, color: '#12211F' } },
+                    '没有基准可比，无法判断解的好坏',
+                    '与全排列穷举对照，平均差距 0.00%',
+                ],
+            ]}
+        />
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+    <Box style={{ flexDirection: 'row', justifyContent: 'space-between', borderTop: '1px solid #E4DCD0', paddingTop: 12 }}>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>旅迹 LVJI · 一日行程编排</Text>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>07</Text>
+    </Box>
+</Slide>

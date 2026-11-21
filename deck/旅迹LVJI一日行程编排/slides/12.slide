@@ -1,0 +1,40 @@
+<Slide style={{ background: '#0C3B3C', padding: 0 }}>
+    <Box style={{ position: 'absolute', top: 0, left: 0, width: 1280, height: 720 }}>
+        <svg width={1280} height={720} viewBox='0 0 1280 720'>
+            {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+                <line x1={120 + i * 160} y1={0} x2={120 + i * 160} y2={720} stroke='#FFFFFF' strokeOpacity='0.055' strokeWidth='1' />
+            ))}
+            {[0, 1, 2, 3, 4].map(i => (
+                <line x1={0} y1={80 + i * 140} x2={1280} y2={80 + i * 140} stroke='#FFFFFF' strokeOpacity='0.055' strokeWidth='1' />
+            ))}
+            <circle cx={196} cy={520} r={110} fill='none' stroke='#D8623B' strokeOpacity='0.3' strokeWidth='1.2' />
+            <circle cx={196} cy={520} r={172} fill='none' stroke='#FFFFFF' strokeOpacity='0.07' strokeWidth='1' />
+            <circle cx={196} cy={520} r={8} fill='#D8623B' />
+        </svg>
+    </Box>
+
+    <Box style={{ width: 1280, height: 720, padding: '60px', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+        <Text style={{ fontSize: 60, fontWeight: 'bold', color: '#FBF8F3', lineHeight: 1.24, letterSpacing: -1, textAlign: 'center' }}>
+            把限制条件，
+            <br />
+            变成时间表。
+        </Text>
+
+        <Box style={{ width: 64, height: 3, background: '#D8623B', marginTop: 34, marginBottom: 30 }} />
+
+        <Text style={{ fontSize: 18, color: '#C3D2CE', lineHeight: 1.8, textAlign: 'center' }}>
+            现场可以复跑：输入一句需求 → 拉到页尾点「跑最优性验证」
+            <br />
+            会现场穷举全部排列，并给出与可证明最优的差距
+        </Text>
+
+        <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 66 }}>
+            <svg width={30} height={30} viewBox='0 0 48 48'>
+                <path d='M8 34c6-14 26-14 32 0' fill='none' stroke='#FBF8F3' strokeWidth='3' strokeLinecap='round' />
+                <circle cx='24' cy='13' r='5' fill='none' stroke='#FBF8F3' strokeWidth='3' />
+                <path d='M24 18v9' stroke='#FBF8F3' strokeWidth='3' strokeLinecap='round' />
+            </svg>
+            <Text style={{ fontSize: 17, color: '#8FA9A4', letterSpacing: 3 }}>旅迹 LVJI · 一日行程编排</Text>
+        </Box>
+    </Box>
+</Slide>

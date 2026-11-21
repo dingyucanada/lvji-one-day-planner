@@ -1,0 +1,38 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#0C3B3C' }} />
+        <Text style={{ fontSize: 34, fontWeight: 'bold', color: '#12211F' }}>分数不是黑箱，界面上一格一格摊开</Text>
+    </Box>
+
+    <Box style={{ flexDirection: 'row', gap: 50, marginTop: 26 }}>
+        <Box style={{ width: 780, flexDirection: 'column' }}>
+            <Image
+                src='assets/ui-matrix.png'
+                style={{ width: 780, height: 390, objectFit: 'contain', border: '1px solid #E4DCD0', borderRadius: 6 }}
+            />
+            <Text style={{ fontSize: 15, color: '#7C918D', marginTop: 12 }}>
+                真实运行截图：6 个停留点 × 9 个维度，右侧为合计分与入选结论
+            </Text>
+        </Box>
+
+        <Box style={{ width: 330, flexDirection: 'column', justifyContent: 'center', gap: 0 }}>
+            {[
+                ['深浅即正负', '墨绿为加分、砖红为扣分，颜色浓度为得分的绝对值'],
+                ['表头写性质', '每列都标出定量 / 半定量 / 定性，评审可以逐格追溯'],
+                ['落选有归因', '闭馆、轮椅不通这类硬约束与「评分不够」分开展示'],
+                ['权重可核对', '从权重 9 到权重 1/120，全部写在界面上'],
+            ].map(([t, d]) => (
+                <Box key={t} style={{ flexDirection: 'column', gap: 6, paddingTop: 16, paddingBottom: 16, borderTop: '1px solid #E4DCD0' }}>
+                    <Text style={{ fontSize: 19, fontWeight: 'bold', color: '#0C3B3C' }}>{t}</Text>
+                    <Text style={{ fontSize: 16, color: '#435B57', lineHeight: 1.6 }}>{d}</Text>
+                </Box>
+            ))}
+        </Box>
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+    <Box style={{ flexDirection: 'row', justifyContent: 'space-between', borderTop: '1px solid #E4DCD0', paddingTop: 12 }}>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>旅迹 LVJI · 一日行程编排</Text>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>05</Text>
+    </Box>
+</Slide>

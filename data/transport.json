@@ -1,0 +1,17 @@
+{
+  "city": "杭州",
+  "note": "城际交通样例数据（车次/航班为样例，非实时余票）",
+  "routes": [
+    { "id": "g-bj-hz-1", "from": "北京", "to": "杭州", "mode": "高铁", "code": "G19", "depart": "07:00", "arrive": "12:38", "durationMin": 338, "price": 862, "note": "北京南—杭州东，二等座" },
+    { "id": "g-bj-hz-2", "from": "北京", "to": "杭州", "mode": "高铁", "code": "G33", "depart": "09:00", "arrive": "14:42", "durationMin": 342, "price": 862, "note": "北京南—杭州东，二等座" },
+    { "id": "f-bj-hz-1", "from": "北京", "to": "杭州", "mode": "航班", "code": "CA1549", "depart": "07:30", "arrive": "09:55", "durationMin": 145, "price": 1180, "note": "首都T3—萧山T3，含 20kg 托运" },
+    { "id": "g-sh-hz-1", "from": "上海", "to": "杭州", "mode": "高铁", "code": "G7301", "depart": "08:05", "arrive": "09:02", "durationMin": 57, "price": 73, "note": "上海虹桥—杭州东" },
+    { "id": "g-gz-hz-1", "from": "广州", "to": "杭州", "mode": "高铁", "code": "G86", "depart": "08:00", "arrive": "14:12", "durationMin": 372, "price": 780, "note": "广州南—杭州东" },
+    { "id": "f-sz-hz-1", "from": "深圳", "to": "杭州", "mode": "航班", "code": "ZH9871", "depart": "08:20", "arrive": "10:35", "durationMin": 135, "price": 890, "note": "宝安T3—萧山T3" }
+  ],
+  "local": [
+    { "mode": "步行", "speedKmh": 4.5, "maxKm": 1.2, "farePerTrip": 0, "note": "1.2 公里内优先步行" },
+    { "mode": "地铁", "speedKmh": 22, "waitMin": 6, "farePerTrip": 4, "note": "含进站候车 6 分钟" },
+    { "mode": "打车", "speedKmh": 26, "waitMin": 5, "farePerTrip": 26, "note": "含等车 5 分钟，按市区均价估算" }
+  ]
+}

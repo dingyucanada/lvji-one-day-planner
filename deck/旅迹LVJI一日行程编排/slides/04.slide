@@ -1,0 +1,46 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#0C3B3C' }} />
+        <Text style={{ fontSize: 34, fontWeight: 'bold', color: '#12211F' }}>九维打分，三种性质</Text>
+        <Box style={{ flex: 1 }} />
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>定量读数据字段 · 半定量走规则映射 · 定性靠语义理解</Text>
+    </Box>
+
+    <Box style={{ marginTop: 26, height: 462 }}>
+        <Table
+            style={{ width: '100%', height: '100%' }}
+            defaultTextStyle={{ fontSize: 15, textAlign: 'left', color: '#12211F' }}
+            defaultCellStyle={{
+                border: { bottom: { width: 1, color: '#E4DCD0' } },
+                paddingLeft: 14,
+                paddingRight: 14,
+            }}
+            cells={[
+                [
+                    { text: '评价维度', textStyle: { bold: true, color: '#435B57', fontSize: 15 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                    { text: '性质', textStyle: { bold: true, color: '#435B57', fontSize: 15 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                    { text: '权重', textStyle: { bold: true, color: '#435B57', fontSize: 15 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                    { text: '口径', textStyle: { bold: true, color: '#435B57', fontSize: 15 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                ],
+                ['口碑', { text: '定量', textStyle: { color: '#0C3B3C', bold: true } }, '× 2', '景点评分直接换算，0–10 分区间'],
+                ['兴趣匹配', { text: '定性', textStyle: { color: '#D8623B', bold: true } }, '每个 +9', '命中用户说出的一个兴趣点'],
+                ['人群适配', { text: '定性', textStyle: { color: '#D8623B', bold: true } }, '+3 ~ +4', '亲子 / 情侣标签与同行人是否匹配'],
+                ['天气适配', { text: '半定量', textStyle: { color: '#B8862B', bold: true } }, '± 4', '降水概率 × 室内外属性，雨天户外倒扣'],
+                ['无障碍', { text: '定性', textStyle: { color: '#D8623B', bold: true } }, '+ 4', '轮椅可达才加分，需无障碍时成为门槛'],
+                ['步行强度', { text: '半定量', textStyle: { color: '#B8862B', bold: true } }, '× 2.2', '强度 1–5 级，低步行人群惩罚加倍'],
+                ['排队成本', { text: '定量', textStyle: { color: '#0C3B3C', bold: true } }, '÷ 12', '排队分钟数折算，含时段与周末系数'],
+                ['路上耗时', { text: '定量', textStyle: { color: '#0C3B3C', bold: true } }, '÷ 12', '站点之间的实际移动分钟'],
+                ['门票成本', { text: '定量', textStyle: { color: '#0C3B3C', bold: true } }, '÷ 120', '票价折算，高价短游再加一道惩罚'],
+            ]}
+        />
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+
+    <Box style={{ flexDirection: 'row', justifyContent: 'space-between', borderTop: '1px solid #E4DCD0', paddingTop: 14 }}>
+        <Text style={{ fontSize: 16, color: '#435B57' }}>
+            权重不是拍脑袋定的：兴趣 ×9 最高，因为「想去看什么」是用户唯一亲口说出的偏好。
+        </Text>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>04</Text>
+    </Box>
+</Slide>

@@ -1,0 +1,10 @@
+{
+  "city": "杭州",
+  "note": "天气样例数据（本地内置，非实时预报）",
+  "days": [
+    { "date": "2026-11-21", "weekday": "周六", "condition": "晴", "high": 21, "low": 12, "rainProb": 5, "wind": "东北风 2 级", "outdoorScore": 5, "tip": "适合户外与登高，傍晚湖边风大" },
+    { "date": "2026-11-22", "weekday": "周日", "condition": "小雨转阴", "high": 17, "low": 11, "rainProb": 70, "wind": "北风 3 级", "outdoorScore": 2, "tip": "带伞，户外行程建议换成博物馆与室内馆" },
+    { "date": "2026-11-23", "weekday": "周一", "condition": "多云", "high": 19, "low": 10, "rainProb": 20, "wind": "微风", "outdoorScore": 4, "tip": "多云适合长时间步行，注意周一多数博物馆闭馆" },
+    { "date": "2026-11-24", "weekday": "周二", "condition": "晴", "high": 22, "low": 13, "rainProb": 10, "wind": "南风 2 级", "outdoorScore": 5, "tip": "天气好，适合西溪湿地这类长时间户外" }
+  ]
+}

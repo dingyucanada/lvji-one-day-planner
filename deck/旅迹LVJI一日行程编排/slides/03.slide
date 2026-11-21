@@ -1,0 +1,74 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#0C3B3C' }} />
+        <Text style={{ fontSize: 34, fontWeight: 'bold', color: '#12211F' }}>两层：先构造，再在顺序空间里搜</Text>
+    </Box>
+    <Text style={{ fontSize: 18, color: '#435B57', marginTop: 14, lineHeight: 1.6 }}>
+        纯贪心是单向的——一旦决定了「先去哪」，后面全部连锁。所以要有一层能在顺序上回头的搜索。
+    </Text>
+
+    <Box style={{ flexDirection: 'column', marginTop: 42 }}>
+        <Box style={{ flexDirection: 'row', gap: 34, paddingBottom: 30, borderTop: '1px solid #D3C8B8', paddingTop: 26 }}>
+            <Box style={{ width: 186, flexDirection: 'column' }}>
+                <Text style={{ fontSize: 13, color: '#7C918D', letterSpacing: 2 }}>第一层</Text>
+                <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0C3B3C', marginTop: 5 }}>贪心构造</Text>
+                <Text style={{ fontSize: 15, color: '#7C918D', marginTop: 7 }}>经典做法 · O(n²)</Text>
+            </Box>
+            <Box style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
+                <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                    {['按九维得分排序候选', '插入当前最高分', '卡死四个时刻', '得到一张可行时间轴'].map((t, i) => (
+                        <Box key={t} style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                            {i > 0 ? <Text style={{ fontSize: 18, color: '#B8862B' }}>→</Text> : null}
+                            <Text style={{ fontSize: 17, color: '#12211F' }}>{t}</Text>
+                        </Box>
+                    ))}
+                </Box>
+                <Text style={{ fontSize: 16, color: '#435B57', marginTop: 16, lineHeight: 1.65 }}>
+                    到达 → 排队 → 游览 → 闭馆，四个时刻逐个卡住；开门前要干等太久的不硬塞。
+                    <span style={{ color: '#7C918D' }}>14 个景点单次构造 0.4 毫秒。</span>
+                </Text>
+            </Box>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', gap: 34, borderTop: '1px solid #D3C8B8', paddingTop: 26 }}>
+            <Box style={{ width: 186, flexDirection: 'column' }}>
+                <Text style={{ fontSize: 13, color: '#7C918D', letterSpacing: 2 }}>第二层</Text>
+                <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#D8623B', marginTop: 5 }}>ILS 邻域搜索</Text>
+                <Text style={{ fontSize: 15, color: '#7C918D', marginTop: 7 }}>改进做法 · 160 轮</Text>
+            </Box>
+            <Box style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
+                <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                    {['交换两站', '移动一站', '引入未选点', '按新顺序重排', '只接受更优'].map((t, i) => (
+                        <Box key={t} style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                            {i > 0 ? <Text style={{ fontSize: 18, color: '#B8862B' }}>→</Text> : null}
+                            <Text style={{ fontSize: 17, color: '#12211F' }}>{t}</Text>
+                        </Box>
+                    ))}
+                </Box>
+                <Text style={{ fontSize: 16, color: '#435B57', marginTop: 16, lineHeight: 1.65 }}>
+                    连续无改进就加大扰动力度，最多同时做四次复合移动；随机种子固定，同一需求每次跑出同一个结果。
+                    <span style={{ color: '#7C918D' }}>160 轮合计 18 毫秒。</span>
+                </Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+
+    <Box style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 40, borderTop: '1px solid #E4DCD0', paddingTop: 18 }}>
+        <Box style={{ flexDirection: 'column' }}>
+            <Text style={{ fontSize: 30, fontWeight: 'bold', color: '#0C3B3C', lineHeight: 1.1 }}>+6.8%</Text>
+            <Text style={{ fontSize: 15, color: '#435B57', marginTop: 4 }}>同一需求下搜索带来的目标值提升</Text>
+        </Box>
+        <Box style={{ flexDirection: 'column' }}>
+            <Text style={{ fontSize: 30, fontWeight: 'bold', color: '#0C3B3C', lineHeight: 1.1 }}>+1 站</Text>
+            <Text style={{ fontSize: 15, color: '#435B57', marginTop: 4 }}>多排进一个原本被挤掉的景点</Text>
+        </Box>
+        <Box style={{ flexDirection: 'column' }}>
+            <Text style={{ fontSize: 30, fontWeight: 'bold', color: '#0C3B3C', lineHeight: 1.1 }}>0 次</Text>
+            <Text style={{ fontSize: 15, color: '#435B57', marginTop: 4 }}>违反开放时间窗的到访</Text>
+        </Box>
+        <Box style={{ flex: 1 }} />
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>03</Text>
+    </Box>
+</Slide>

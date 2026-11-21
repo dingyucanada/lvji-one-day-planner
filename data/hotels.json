@@ -1,0 +1,30 @@
+{
+  "city": "杭州",
+  "note": "住宿样例数据，价格为样例区间中位数，非实时报价",
+  "hotels": [
+    {
+      "id": "xihu-guobin", "name": "西湖国宾馆", "zone": "西湖西岸",
+      "lat": 30.2420, "lon": 120.1300, "price": 1280, "stars": 5,
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": true,
+      "tags": ["湖景", "安静"], "note": "园区大可办轮椅，含早餐"
+    },
+    {
+      "id": "hubin-ator", "name": "湖滨亚朵酒店", "zone": "西湖东岸",
+      "lat": 30.2520, "lon": 120.1660, "price": 520, "stars": 4,
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": true,
+      "tags": ["近地铁", "商圈"], "note": "距断桥步行 8 分钟，有停车位（需预约）"
+    },
+    {
+      "id": "hefang-inn", "name": "河坊街院落民宿", "zone": "吴山",
+      "lat": 30.2445, "lon": 120.1700, "price": 290, "stars": 3,
+      "wheelchair": false, "accessibleToilet": false, "aed": false, "parking": false,
+      "tags": ["老宅", "便宜"], "note": "老宅门槛与窄楼梯，不适合轮椅；无停车位"
+    },
+    {
+      "id": "lingyin-resort", "name": "灵隐度假酒店", "zone": "灵隐",
+      "lat": 30.2410, "lon": 120.1060, "price": 880, "stars": 5,
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": true,
+      "tags": ["山景", "亲子"], "note": "有家庭房与无障碍房，近灵隐寺"
+    }
+  ]
+}

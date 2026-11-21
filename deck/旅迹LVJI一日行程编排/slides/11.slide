@@ -1,0 +1,58 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#0C3B3C' }} />
+        <Text style={{ fontSize: 34, fontWeight: 'bold', color: '#12211F' }}>全部自建：前端、数据、接口、求解器</Text>
+    </Box>
+    <Text style={{ fontSize: 17, color: '#435B57', marginTop: 14 }}>
+        没有外部接口，没有编造的实时报价。所有数字都来自仓库里的 JSON。
+    </Text>
+
+    <Box style={{ flexDirection: 'row', gap: 56, marginTop: 30 }}>
+        <Box style={{ width: 648, flexDirection: 'column' }}>
+            {[
+                ['前端层', '原生 JS + CSS，零构建', '时间轴 · 路线图 · 评分矩阵 · 收敛曲线 · 分组切换'],
+                ['接口层', 'Python 标准库 HTTP 服务', '8 个接口，全部返回真实文件内容与调用耗时'],
+                ['数据层', '4 份 JSON 数据集', '14 景点 / 4 餐厅 / 4 天天气 / 6 条城际 / 4 家住宿'],
+                ['求解层', '九维打分 + 贪心 + ILS', '解析 → 过滤 → 打分 → 构造 → 搜索 → 预算'],
+            ].map(([tag, sub, desc]) => (
+                <Box key={tag} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 16, paddingBottom: 16, borderTop: '1px solid #D3C8B8' }}>
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0C3B3C', width: 84 }}>{tag}</Text>
+                    <Box style={{ flex: 1, flexDirection: 'column', gap: 5 }}>
+                        <Text style={{ fontSize: 16, color: '#12211F', fontWeight: 'bold' }}>{sub}</Text>
+                        <Text style={{ fontSize: 15, color: '#435B57', lineHeight: 1.55 }}>{desc}</Text>
+                    </Box>
+                </Box>
+            ))}
+        </Box>
+
+        <Box style={{ flex: 1, flexDirection: 'column' }}>
+            <Text style={{ fontSize: 14, color: '#7C918D', letterSpacing: 2, marginBottom: 10 }}>接口清单</Text>
+            {[
+                'GET  /api/meta',
+                'GET  /api/spots',
+                'GET  /api/weather',
+                'GET  /api/transport',
+                'GET  /api/hotels',
+                'GET  /api/benchmark',
+                'GET  /api/scaling',
+                'POST /api/plan',
+            ].map(p => (
+                <Box key={p} style={{ paddingTop: 6, paddingBottom: 6, borderBottom: '1px solid #E4DCD0' }}>
+                    <Text style={{ fontSize: 15, color: '#0C3B3C' }}>{p}</Text>
+                </Box>
+            ))}
+            <Text style={{ fontSize: 14, color: '#7C918D', marginTop: 14, lineHeight: 1.6 }}>
+                每次调用都记录耗时与返回行数，界面上原样展示，可逐条核对。
+            </Text>
+        </Box>
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+
+    <Box style={{ flexDirection: 'row', justifyContent: 'space-between', borderTop: '1px solid #E4DCD0', paddingTop: 12 }}>
+        <Text style={{ fontSize: 15, color: '#435B57' }}>
+            16 项自动化测试覆盖排程约束、分组逻辑与最优性验证，全部通过。
+        </Text>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>11</Text>
+    </Box>
+</Slide>

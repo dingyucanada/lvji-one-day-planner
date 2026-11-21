@@ -1,0 +1,46 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#D8623B' }} />
+        <Text style={{ fontSize: 15, color: '#7C918D', letterSpacing: 2 }}>同一套引擎，换一组约束</Text>
+    </Box>
+
+    <Box style={{ flexDirection: 'row', gap: 60, marginTop: 34 }}>
+        <Box style={{ width: 430, flexDirection: 'column' }}>
+            <Text style={{ fontSize: 54, fontWeight: 'bold', color: '#12211F', lineHeight: 1.22, letterSpacing: -1 }}>
+                约束不一样，
+                <br />
+                产品就不一样。
+            </Text>
+            <Box style={{ width: 62, height: 3, background: '#D8623B', marginTop: 26, marginBottom: 22 }} />
+            <Text style={{ fontSize: 17, color: '#435B57', lineHeight: 1.75 }}>
+                行程规划的难点从来不是「推荐去哪」，而是「在哪些限制下还能去哪」。
+                把限制集换掉，同一个求解器就是另一个产品。
+            </Text>
+        </Box>
+
+        <Box style={{ flex: 1, flexDirection: 'column' }}>
+            {[
+                ['陪爸妈复诊', '低步行 · 轮椅可达 · 医院周边 · 午间休整'],
+                ['带娃过周末', '亲子标签 · 午睡窗口 · 单程不超过 40 分钟'],
+                ['朋友聚会', '多起点集合 · 夜间营业 · 人均预算上限'],
+                ['无障碍出行', '全程无台阶 · 必须有无障碍厕所 · 连续游玩不超 4 小时'],
+                ['外国朋友来华', '免签时长约束 · 支持境外支付的地点 · 英文标识'],
+                ['差旅的半天', '会议间隙 · 离机场近 · 随时可中断返回'],
+            ].map(([t, d]) => (
+                <Box key={t} style={{ flexDirection: 'row', alignItems: 'baseline', gap: 18, paddingTop: 13, paddingBottom: 13, borderTop: '1px solid #E4DCD0' }}>
+                    <Text style={{ fontSize: 19, fontWeight: 'bold', color: '#0C3B3C', width: 132 }}>{t}</Text>
+                    <Text style={{ fontSize: 16, color: '#435B57', flex: 1 }}>{d}</Text>
+                </Box>
+            ))}
+        </Box>
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+
+    <Box style={{ flexDirection: 'row', justifyContent: 'space-between', borderTop: '1px solid #E4DCD0', paddingTop: 14 }}>
+        <Text style={{ fontSize: 16, color: '#12211F' }}>
+            所以它不是差旅工具 —— 它是一台「把限制条件变成时间表」的机器。
+        </Text>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>10</Text>
+    </Box>
+</Slide>

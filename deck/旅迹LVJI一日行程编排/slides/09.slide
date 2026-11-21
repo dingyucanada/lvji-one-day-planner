@@ -1,0 +1,63 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#0C3B3C' }} />
+        <Text style={{ fontSize: 34, fontWeight: 'bold', color: '#12211F' }}>七项要求，逐条落到代码和界面上</Text>
+    </Box>
+    <Text style={{ fontSize: 16, color: '#7C918D', marginTop: 14 }}>
+        每条都写清在哪，现场可以随手点开核对
+    </Text>
+
+    <Box style={{ marginTop: 22, height: 456 }}>
+        <Table
+            style={{ width: '100%', height: '100%' }}
+            defaultTextStyle={{ fontSize: 15, textAlign: 'left', color: '#12211F' }}
+            defaultCellStyle={{
+                border: { bottom: { width: 1, color: '#E4DCD0' } },
+                paddingLeft: 14,
+                paddingRight: 14,
+                paddingTop: 8,
+                paddingBottom: 8,
+            }}
+            cells={[
+                [
+                    { text: '赛题要求', textStyle: { bold: true, color: '#435B57', fontSize: 14 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                    { text: '在项目里的落点', textStyle: { bold: true, color: '#435B57', fontSize: 14 }, cellStyle: { border: { bottom: { width: 1, color: '#D3C8B8' } } } },
+                ],
+                [
+                    { text: '1 · 模糊输入理解', textStyle: { bold: true, color: '#0C3B3C' } },
+                    'parse_request() 从一句话里取城市、人数（含「带爸妈 / 两个孩子」推算）、同行人群、兴趣、时段、轮椅与低步行约束、日期',
+                ],
+                [
+                    { text: '2 · 多站点路线', textStyle: { bold: true, color: '#0C3B3C' } },
+                    '贪心构造 + ILS 顺序搜索排序；前端按经纬度等比投影画动线，标出到访序号与每站时刻',
+                ],
+                [
+                    { text: '3 · 时间窗与排队', textStyle: { bold: true, color: '#0C3B3C' } },
+                    '每站 begin = max(到达, 开门)、leave ≤ 闭馆；排队系数按时段 ×1.6、周末 ×1.25、雨天室内 ×1.3 / 户外 ×0.6',
+                ],
+                [
+                    { text: '4 · 天气交通住宿', textStyle: { bold: true, color: '#0C3B3C' } },
+                    '降水概率直接改选点；步行 4.5km/h、地铁 22km/h+候车、打车 26km/h+等车三档算耗时与费用；住宿与城际进预算',
+                ],
+                [
+                    { text: '5 · 单人与多人', textStyle: { bold: true, color: '#0C3B3C' } },
+                    '单人成队；长辈 + 孩子自动拆两组各自排程，午餐同店汇合，撞点的让后来者改道错峰',
+                ],
+                [
+                    { text: '6 · 特殊人群无障碍', textStyle: { bold: true, color: '#0C3B3C' } },
+                    '轮椅可达、无障碍厕所、AED、停车位逐点在时间轴与无障碍卡中标出；低步行人群惩罚加倍，每 2.5 小时强制休息 15 分钟',
+                ],
+                [
+                    { text: '7 · 前端体验', textStyle: { bold: true, color: '#0C3B3C' } },
+                    '时间轴、路线图、预算卡、九维评分矩阵、收敛曲线、接口日志、分组切换、响应式布局与 reduced-motion',
+                ],
+            ]}
+        />
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+    <Box style={{ flexDirection: 'row', justifyContent: 'space-between', borderTop: '1px solid #E4DCD0', paddingTop: 12 }}>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>旅迹 LVJI · 一日行程编排</Text>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>09</Text>
+    </Box>
+</Slide>

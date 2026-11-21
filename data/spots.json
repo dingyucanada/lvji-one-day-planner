@@ -1,0 +1,181 @@
+{
+  "city": "杭州",
+  "version": "2026.11",
+  "source": "本地内置样例数据（人工整理自景区公开信息，非实时）",
+  "spots": [
+    {
+      "id": "hsl-duanqiao",
+      "name": "西湖·断桥残雪",
+      "zone": "西湖东岸",
+      "lat": 30.2588, "lon": 120.1520,
+      "open": "06:00", "close": "22:00", "closedDays": [],
+      "queueMin": 0, "durationMin": 50, "walkIntensity": 2, "indoor": false,
+      "ticket": 0, "rating": 4.7,
+      "tags": ["湖景", "地标", "免费", "拍照"],
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": false,
+      "note": "全平步道，轮椅可通行；旺季人流量大，无排队但拍照点拥挤"
+    },
+    {
+      "id": "hsl-leifeng",
+      "name": "雷峰塔",
+      "zone": "西湖南线",
+      "lat": 30.2312, "lon": 120.1489,
+      "open": "08:00", "close": "20:00", "closedDays": [],
+      "queueMin": 25, "durationMin": 70, "walkIntensity": 2, "indoor": false,
+      "ticket": 40, "rating": 4.5,
+      "tags": ["古塔", "登高", "湖景", "地标"],
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": true,
+      "note": "有电梯直达顶层，轮椅可上；塔内楼梯窄，高峰排队 25-40 分钟"
+    },
+    {
+      "id": "lingyin",
+      "name": "灵隐寺·飞来峰",
+      "zone": "灵隐",
+      "lat": 30.2408, "lon": 120.1010,
+      "open": "07:00", "close": "18:00", "closedDays": [],
+      "queueMin": 30, "durationMin": 110, "walkIntensity": 4, "indoor": false,
+      "ticket": 75, "rating": 4.8,
+      "tags": ["古寺", "石窟", "登山", "文化"],
+      "wheelchair": false, "accessibleToilet": true, "aed": false, "parking": true,
+      "note": "石阶与坡道多，轮椅不便；建议上午前往，午后团队游客集中"
+    },
+    {
+      "id": "zhebo-gushan",
+      "name": "浙江省博物馆（孤山馆）",
+      "zone": "西湖孤山",
+      "lat": 30.2530, "lon": 120.1450,
+      "open": "09:00", "close": "17:00", "closedDays": ["周一"],
+      "queueMin": 15, "durationMin": 90, "walkIntensity": 2, "indoor": true,
+      "ticket": 0, "rating": 4.6,
+      "tags": ["博物馆", "文物", "免费", "雨天友好"],
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": false,
+      "note": "全馆无障碍，有轮椅借用；周一闭馆"
+    },
+    {
+      "id": "tea-museum",
+      "name": "中国茶叶博物馆（双峰馆）",
+      "zone": "龙井",
+      "lat": 30.2360, "lon": 120.1180,
+      "open": "09:00", "close": "16:30", "closedDays": ["周一"],
+      "queueMin": 5, "durationMin": 75, "walkIntensity": 3, "indoor": true,
+      "ticket": 0, "rating": 4.4,
+      "tags": ["博物馆", "茶园", "免费", "雨天友好"],
+      "wheelchair": true, "accessibleToilet": true, "aed": false, "parking": true,
+      "note": "馆内平层，茶园段有缓坡；可体验茶艺（另付费 60 元/人）"
+    },
+    {
+      "id": "hefang",
+      "name": "河坊街·清河坊",
+      "zone": "吴山",
+      "lat": 30.2440, "lon": 120.1690,
+      "open": "10:00", "close": "22:00", "closedDays": [],
+      "queueMin": 0, "durationMin": 80, "walkIntensity": 2, "indoor": false,
+      "ticket": 0, "rating": 4.3,
+      "tags": ["美食", "老街", "购物", "免费", "夜景"],
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": true,
+      "note": "青石板路较平整，轮椅可通行；小吃摊密集，适合傍晚"
+    },
+    {
+      "id": "xixi",
+      "name": "西溪国家湿地公园",
+      "zone": "西溪",
+      "lat": 30.2720, "lon": 120.0680,
+      "open": "08:00", "close": "17:30", "closedDays": [],
+      "queueMin": 20, "durationMin": 150, "walkIntensity": 5, "indoor": false,
+      "ticket": 80, "rating": 4.5,
+      "tags": ["湿地", "摇橹船", "自然", "徒步"],
+      "wheelchair": false, "accessibleToilet": true, "aed": true, "parking": true,
+      "note": "园区极大，步行 6-8 公里；可换摇橹船（100 元/船，需另购）减少步行"
+    },
+    {
+      "id": "zoo",
+      "name": "杭州动物园",
+      "zone": "西湖西南",
+      "lat": 30.2260, "lon": 120.1420,
+      "open": "08:00", "close": "17:00", "closedDays": [],
+      "queueMin": 15, "durationMin": 120, "walkIntensity": 4, "indoor": false,
+      "ticket": 20, "rating": 4.2,
+      "tags": ["亲子", "动物", "户外"],
+      "wheelchair": false, "accessibleToilet": true, "aed": true, "parking": true,
+      "note": "依山而建，坡道多，推车与轮椅吃力；建议上午动物活跃时段"
+    },
+    {
+      "id": "songcheng",
+      "name": "宋城景区",
+      "zone": "之江",
+      "lat": 30.1550, "lon": 120.0900,
+      "open": "10:00", "close": "21:00", "closedDays": [],
+      "queueMin": 20, "durationMin": 180, "walkIntensity": 3, "indoor": false,
+      "ticket": 320, "rating": 4.3,
+      "tags": ["演出", "亲子", "夜游", "主题园"],
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": true,
+      "note": "含《宋城千古情》演出（固定场次 14:00 / 19:30）；园区平缓，轮椅可通行"
+    },
+    {
+      "id": "longjing",
+      "name": "龙井村·茶园步道",
+      "zone": "龙井",
+      "lat": 30.2130, "lon": 120.1000,
+      "open": "08:30", "close": "17:30", "closedDays": [],
+      "queueMin": 0, "durationMin": 90, "walkIntensity": 5, "indoor": false,
+      "ticket": 0, "rating": 4.4,
+      "tags": ["茶园", "徒步", "免费", "自然"],
+      "wheelchair": false, "accessibleToilet": false, "aed": false, "parking": true,
+      "note": "石板台阶与土路混合，无无障碍厕所；雨后湿滑"
+    },
+    {
+      "id": "liangzhu",
+      "name": "良渚博物院",
+      "zone": "良渚",
+      "lat": 30.4000, "lon": 120.0000,
+      "open": "09:00", "close": "17:00", "closedDays": ["周一"],
+      "queueMin": 10, "durationMin": 100, "walkIntensity": 3, "indoor": true,
+      "ticket": 0, "rating": 4.6,
+      "tags": ["博物馆", "考古", "免费", "雨天友好", "亲子"],
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": true,
+      "note": "距市中心约 20 公里，适合自驾或打车；全馆无障碍"
+    },
+    {
+      "id": "gongchen",
+      "name": "京杭大运河·拱宸桥",
+      "zone": "拱墅",
+      "lat": 30.3200, "lon": 120.1400,
+      "open": "00:00", "close": "23:59", "closedDays": [],
+      "queueMin": 0, "durationMin": 60, "walkIntensity": 2, "indoor": false,
+      "ticket": 0, "rating": 4.3,
+      "tags": ["运河", "夜景", "免费", "散步"],
+      "wheelchair": true, "accessibleToilet": true, "aed": false, "parking": true,
+      "note": "沿河平路，适合傍晚散步；桥面有台阶，轮椅建议走桥侧坡道"
+    },
+    {
+      "id": "silk-museum",
+      "name": "中国丝绸博物馆",
+      "zone": "玉皇山",
+      "lat": 30.2260, "lon": 120.1350,
+      "open": "09:00", "close": "17:00", "closedDays": ["周一"],
+      "queueMin": 8, "durationMin": 80, "walkIntensity": 2, "indoor": true,
+      "ticket": 0, "rating": 4.5,
+      "tags": ["博物馆", "免费", "雨天友好", "亲子"],
+      "wheelchair": true, "accessibleToilet": true, "aed": true, "parking": true,
+      "note": "馆区平缓，有儿童互动区；适合雨天替代户外行程"
+    },
+    {
+      "id": "botanic",
+      "name": "杭州植物园",
+      "zone": "西湖西北",
+      "lat": 30.2560, "lon": 120.1200,
+      "open": "08:00", "close": "17:00", "closedDays": [],
+      "queueMin": 5, "durationMin": 100, "walkIntensity": 4, "indoor": false,
+      "ticket": 10, "rating": 4.4,
+      "tags": ["园林", "自然", "赏花", "亲子"],
+      "wheelchair": true, "accessibleToilet": true, "aed": false, "parking": true,
+      "note": "主园路平整，深处林区有缓坡；春季赏花高峰需排队"
+    }
+  ],
+  "food": [
+    { "id": "louwailou", "name": "楼外楼（孤山店）", "zone": "西湖孤山", "lat": 30.2540, "lon": 120.1440, "queueMin": 30, "pricePerPerson": 150, "wheelchair": true, "accessibleToilet": true, "tags": ["杭帮菜", "老字号"] },
+    { "id": "zhiweiguan", "name": "知味观（河坊街店）", "zone": "吴山", "lat": 30.2435, "lon": 120.1680, "queueMin": 20, "pricePerPerson": 70, "wheelchair": true, "accessibleToilet": true, "tags": ["小吃", "老字号"] },
+    { "id": "grandma", "name": "外婆家（湖滨店）", "zone": "西湖东岸", "lat": 30.2520, "lon": 120.1630, "queueMin": 35, "pricePerPerson": 80, "wheelchair": true, "accessibleToilet": true, "tags": ["家常菜", "排队多"] },
+    { "id": "longjing-cottage", "name": "龙井草堂", "zone": "龙井", "lat": 30.2180, "lon": 120.1030, "queueMin": 10, "pricePerPerson": 260, "wheelchair": false, "accessibleToilet": true, "tags": ["精致", "茶园"] }
+  ]
+}

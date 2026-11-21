@@ -1,0 +1,63 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#0C3B3C' }} />
+        <Text style={{ fontSize: 34, fontWeight: 'bold', color: '#12211F' }}>一个真需求，两组人，一张表</Text>
+    </Box>
+
+    <Box style={{ flexDirection: 'row', alignItems: 'baseline', gap: 12, marginTop: 16 }}>
+        <Text style={{ fontSize: 15, color: '#7C918D', width: 34 }}>输入</Text>
+        <Text style={{ fontSize: 17, color: '#12211F', lineHeight: 1.6, flex: 1 }}>
+            「明天带坐轮椅的奶奶和两个孩子去杭州玩一天，想看西湖和博物馆，晚上想吃点小吃」
+        </Text>
+    </Box>
+
+    <Box style={{ flexDirection: 'row', gap: 34, marginTop: 24 }}>
+        <Box style={{ width: 322, flexDirection: 'column' }}>
+            <Image
+                src='assets/ui-timeline.png'
+                style={{ width: 322, height: 333, objectFit: 'contain', border: '1px solid #E4DCD0', borderRadius: 4 }}
+            />
+            <Text style={{ fontSize: 14, color: '#7C918D', marginTop: 9 }}>长辈组：低步行 + 无障碍约束下的时间轴</Text>
+        </Box>
+
+        <Box style={{ width: 212, flexDirection: 'column' }}>
+            <Image
+                src='assets/ui-route.png'
+                style={{ width: 212, height: 270, objectFit: 'contain', border: '1px solid #E4DCD0', borderRadius: 4 }}
+            />
+            <Text style={{ fontSize: 14, color: '#7C918D', marginTop: 9 }}>两组动线按经纬度等比投影</Text>
+        </Box>
+
+        <Box style={{ flex: 1, flexDirection: 'column' }}>
+            {[
+                ['拆组', '同时出现长辈与孩子，自动分成两组：长辈组走无障碍低步行路线，亲子组走高强度路线'],
+                ['汇合', '亲子组继承长辈组选定的午餐店，两边在同一家店、同一个时段碰面'],
+                ['错峰', '两组原本会在同一时段撞点，亲子组改走其他景点，避免带着老人孩子一起排队'],
+                ['返工', '开门前要干等超过 30 分钟的点不再硬跳过，改成折算时间成本——硬剪枝会把最优解直接丢掉'],
+            ].map(([t, d]) => (
+                <Box key={t} style={{ flexDirection: 'row', gap: 14, paddingTop: 12, paddingBottom: 12, borderTop: '1px solid #E4DCD0' }}>
+                    <Text style={{ fontSize: 17, fontWeight: 'bold', color: '#D8623B', width: 42 }}>{t}</Text>
+                    <Text style={{ fontSize: 15, color: '#435B57', flex: 1, lineHeight: 1.6 }}>{d}</Text>
+                </Box>
+              ))}
+        </Box>
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+
+    <Box style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 46, borderTop: '1px solid #E4DCD0', paddingTop: 16 }}>
+        {[
+            ['91.9 → 98.1', '目标值，搜索后提升 6.8%'],
+            ['6 个', '长辈组当天实际排进的景点数'],
+            ['0 处', '时间重叠或超出闭馆时刻'],
+            ['2 组', '分头行动但午餐汇合'],
+        ].map(([n, d]) => (
+            <Box key={n} style={{ flexDirection: 'column' }}>
+                <Text style={{ fontSize: 26, fontWeight: 'bold', color: '#0C3B3C', lineHeight: 1.15 }}>{n}</Text>
+                <Text style={{ fontSize: 15, color: '#435B57', marginTop: 4 }}>{d}</Text>
+            </Box>
+        ))}
+        <Box style={{ flex: 1 }} />
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>08</Text>
+    </Box>
+</Slide>

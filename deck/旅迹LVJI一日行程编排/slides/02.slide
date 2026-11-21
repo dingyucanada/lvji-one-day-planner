@@ -1,0 +1,59 @@
+<Slide style={{ background: '#FBF8F3', padding: '60px 60px 60px 60px', flexDirection: 'column' }}>
+    <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Box style={{ width: 8, height: 8, background: '#0C3B3C' }} />
+        <Text style={{ fontSize: 34, fontWeight: 'bold', color: '#12211F' }}>这不是排序，是组合优化</Text>
+    </Box>
+
+    <Box style={{ flexDirection: 'row', gap: 56, marginTop: 46 }}>
+        <Box style={{ width: 606, flexDirection: 'column' }}>
+            <Text style={{ fontSize: 19, color: '#435B57', lineHeight: 1.7 }}>
+                在学术上它叫
+                <span style={{ fontWeight: 'bold', color: '#0C3B3C' }}>带时间窗的团队定向问题（TOPTW）</span>
+                ，旅游行程设计问题的核心。要同时决定五件事：
+            </Text>
+
+            <Box style={{ flexDirection: 'column', gap: 0, marginTop: 26 }}>
+                {[
+                    ['01', '选哪些点', '预算有限，注定有一批景点去不了'],
+                    ['02', '按什么顺序', '顺序一变，后面全部连锁'],
+                    ['03', '落在开放窗内', '每站到访时刻必须 ≥ 开门、≤ 闭馆'],
+                    ['04', '当天时长不超', '移动、排队、游览，全都吃时间'],
+                    ['05', '总价值最大', '不是塞满，是塞得值'],
+                ].map(([n, t, d]) => (
+                    <Box key={n} style={{ flexDirection: 'row', gap: 16, paddingTop: 15, paddingBottom: 15, borderTop: '1px solid #E4DCD0' }}>
+                        <Text style={{ fontSize: 15, color: '#B8862B', fontWeight: 'bold', width: 26 }}>{n}</Text>
+                        <Text style={{ fontSize: 18, color: '#12211F', fontWeight: 'bold', width: 148 }}>{t}</Text>
+                        <Text style={{ fontSize: 17, color: '#435B57', flex: 1, lineHeight: 1.5 }}>{d}</Text>
+                    </Box>
+                ))}
+            </Box>
+        </Box>
+
+        <Box style={{ width: 498, flexDirection: 'column', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 13, color: '#7C918D', letterSpacing: 3 }}>全部可能访问顺序</Text>
+            <Box style={{ flexDirection: 'row', alignItems: 'flex-end', marginTop: 8 }}>
+                <Text style={{ fontSize: 96, fontWeight: 'bold', color: '#D8623B', lineHeight: 1, letterSpacing: -3 }}>40,320</Text>
+                <Text style={{ fontSize: 20, color: '#435B57', marginLeft: 12, marginBottom: 10 }}>种</Text>
+            </Box>
+            <Text style={{ fontSize: 16, color: '#435B57', marginTop: 10 }}>8 个景点的全排列，一秒钟就能算完</Text>
+
+            <Box style={{ height: 1, background: '#D3C8B8', marginTop: 34, marginBottom: 26 }} />
+
+            <Text style={{ fontSize: 15, color: '#7C918D', letterSpacing: 2 }}>换成 14 个景点</Text>
+            <Text style={{ fontSize: 27, fontWeight: 'bold', color: '#12211F', marginTop: 8, lineHeight: 1.35 }}>
+                87,178,291,200 种
+            </Text>
+            <Text style={{ fontSize: 16, color: '#435B57', marginTop: 12, lineHeight: 1.7 }}>
+                每秒穷举一百万种，也要跑满 24 小时。
+                <br />
+                所以能按期交付答案的，只能是启发式。
+            </Text>
+        </Box>
+    </Box>
+
+    <Box style={{ flex: 1 }} />
+    <Box style={{ flexDirection: 'row', justifyContent: 'space-between', borderTop: '1px solid #E4DCD0', paddingTop: 12 }}>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>旅迹 LVJI · 一日行程编排</Text>
+        <Text style={{ fontSize: 15, color: '#7C918D' }}>02</Text>
+    </Box>
+</Slide>
